@@ -1,0 +1,17 @@
+{
+  "name": "rewind",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Time-travel debugging for AI agents - every agent decision is a row in CockroachDB you can rewind, edit, and replay.",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@8.15.4",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "dev:api": "pnpm --filter @rewind/api dev",
+    "db:schema": "node -e \"console.log('Apply schema with: psql \\\"$DATABASE_URL\\\" -f db/schema.sql')\""
+  }
+}

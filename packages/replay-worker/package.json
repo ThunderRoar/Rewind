@@ -1,0 +1,8 @@
+{
+  "name": "@rewind/replay-worker",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Rewind replay worker — async Lambda that re-runs a fork through Bedrock (control + edited). Built in Phase 4.",
+  "license": "Apache-2.0"
+}

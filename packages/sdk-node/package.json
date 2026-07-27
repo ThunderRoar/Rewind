@@ -1,0 +1,8 @@
+{
+  "name": "@rewind/sdk-node",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Rewind ingestion SDK (Node) — wrap LLM + tool calls, emit events. Built in Phase 2.",
+  "license": "Apache-2.0"
+}

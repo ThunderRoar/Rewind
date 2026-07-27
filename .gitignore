@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# secrets / env
+.env
+.env.*
+!.env.example
+
+# build output
+dist/
+build/
+*.tsbuildinfo
+.next/
+out/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS / editor 
+.DS_Store
+Thumbs.db
+.idea/

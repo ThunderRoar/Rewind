@@ -1,0 +1,8 @@
+{
+  "name": "@rewind/mcp-server",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Rewind's MCP server — agents self-query their history (search_history, get_run, find_similar_failures, recall_memory). Built in Phase 5.",
+  "license": "Apache-2.0"
+}

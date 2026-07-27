@@ -1,0 +1,7 @@
+{
+  "name": "@rewind/web",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Rewind web UI (Next.js 15) — timeline scrubber, semantic search, fork & replay, side-by-side diff. Built in Phase 3+. Scaffold with `pnpm create next-app` here.",
+  "license": "Apache-2.0"
+}
