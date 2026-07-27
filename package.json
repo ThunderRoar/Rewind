@@ -12,6 +12,9 @@
     "build": "pnpm -r --if-present build",
     "typecheck": "pnpm -r --if-present typecheck",
     "dev:api": "pnpm --filter @rewind/api dev",
-    "db:schema": "node -e \"console.log('Apply schema with: psql \\\"$DATABASE_URL\\\" -f db/schema.sql')\""
+    "embed:worker": "pnpm --filter @rewind/api embed",
+    "agent:demo": "pnpm --filter @rewind/example-refund-agent start",
+    "db:apply": "node --env-file=.env packages/api/scripts/apply-schema.mjs",
+    "backfill": "node --env-file=.env packages/api/scripts/backfill.mjs"
   }
 }

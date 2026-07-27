@@ -1,12 +1,12 @@
 -- Rewind - CockroachDB schema
 --
--- Before running, verify on the target cluster (vector support is recent):
---   SELECT version();
---   SHOW CLUSTER SETTING feature.vector_index.enabled;   -- must be on
+-- Apply through a real pgwire client (packages/api/scripts/apply-schema.mjs),
+-- NOT the Cloud SQL console
+--
 -- Embedding dimension is 512 (Titan v2 @ dimensions:512). If you change it,
 -- update every VECTOR(512) below AND the vector indexes to match.
 
-SET CLUSTER SETTING feature.vector_index.enabled = true;
+SET use_declarative_schema_changer = 'unsafe_always';
 
 -- Core entities -------------------------------------------------
 
