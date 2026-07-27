@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1095.0",
+    "@fastify/cors": "^11.3.0",
     "dotenv": "^16.4.7",
     "fastify": "^5.2.0",
     "pg": "^8.13.1",
