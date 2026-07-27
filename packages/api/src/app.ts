@@ -1,5 +1,7 @@
 import Fastify, { type FastifyInstance } from "fastify";
 import { getPool } from "./db.js";
+import { eventsRoutes } from "./routes/events.js";
+import { runsRoutes } from "./routes/runs.js";
 
 // Build the app without listening, so the same instance can be wrapped by
 // @fastify/aws-lambda for the Lambda deployment.
@@ -7,6 +9,9 @@ export function buildApp(): FastifyInstance {
   const app = Fastify({
     logger: { level: process.env.LOG_LEVEL ?? "info" },
   });
+
+  app.register(runsRoutes);
+  app.register(eventsRoutes);
 
   // Liveness (no DB).
   app.get("/health/live", async () => ({ status: "ok" }));
