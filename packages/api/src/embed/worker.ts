@@ -8,8 +8,10 @@ export async function embedPendingBatch(limit = 50): Promise<number> {
   const { rows } = await pool.query<{ id: string; kind: string; payload: unknown }>(
     `SELECT e.id, e.kind, e.payload
      FROM events e
+     JOIN runs r ON r.id = e.run_id
      LEFT JOIN event_embeddings ee ON ee.event_id = e.id
      WHERE ee.event_id IS NULL
+       AND r.label IS DISTINCT FROM 'synthetic-backfill'
      ORDER BY e.ts
      LIMIT $1`,
     [limit]

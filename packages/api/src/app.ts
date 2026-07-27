@@ -1,7 +1,10 @@
+import cors from "@fastify/cors";
 import Fastify, { type FastifyInstance } from "fastify";
 import { getPool } from "./db.js";
 import { eventsRoutes } from "./routes/events.js";
+import { readRoutes } from "./routes/read.js";
 import { runsRoutes } from "./routes/runs.js";
+import { searchRoutes } from "./routes/search.js";
 
 // Build the app without listening, so the same instance can be wrapped by
 // @fastify/aws-lambda for the Lambda deployment.
@@ -10,8 +13,11 @@ export function buildApp(): FastifyInstance {
     logger: { level: process.env.LOG_LEVEL ?? "info" },
   });
 
+  app.register(cors, { origin: true });
   app.register(runsRoutes);
   app.register(eventsRoutes);
+  app.register(readRoutes);
+  app.register(searchRoutes);
 
   // Liveness (no DB).
   app.get("/health/live", async () => ({ status: "ok" }));
