@@ -38,6 +38,12 @@ importers:
       '@fastify/cors':
         specifier: ^11.3.0
         version: 11.3.0
+      '@rewind/example-refund-agent':
+        specifier: workspace:*
+        version: link:../../examples/refund-agent
+      '@rewind/sdk-node':
+        specifier: workspace:*
+        version: link:../sdk-node
       dotenv:
         specifier: ^16.4.7
         version: 16.6.1

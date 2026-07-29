@@ -19,7 +19,7 @@ function loadRootEnv(): void {
 loadRootEnv();
 
 const { Rewind } = await import("@rewind/sdk-node");
-const { runRefundAgent } = await import("./agent.js");
+const { runRefundAgent, TRUE_OWNER, POISONED_OWNER } = await import("./agent.js");
 const { refundLedger } = await import("./tools.js");
 
 Rewind.init({
@@ -28,16 +28,16 @@ Rewind.init({
   apiUrl: process.env.API_URL ?? "http://localhost:3000",
 });
 
-// Clean run: the agent should verify and NOT wrongly refund.
+// Clean run: the true ownership record (1001) -> agent refuses the 1002 refund.
 const clean = await Rewind.startRun("refund-clean");
 console.log("clean runId:", clean.runId);
-console.log("CLEAN result:", await runRefundAgent(clean, { poisoned: false }));
+console.log("CLEAN result:", await runRefundAgent(clean, { ownerRecord: TRUE_OWNER }));
 await clean.end();
 
-// Poisoned run: the injected memory makes the agent wrongly approve.
+// Poisoned run: the false ownership record (1002) -> agent wrongly approves.
 const poisoned = await Rewind.startRun("refund-poisoned");
 console.log("poisoned runId:", poisoned.runId);
-console.log("POISONED result:", await runRefundAgent(poisoned, { poisoned: true }));
+console.log("POISONED result:", await runRefundAgent(poisoned, { ownerRecord: POISONED_OWNER }));
 await poisoned.end();
 
 console.log("mock refund ledger:", refundLedger);

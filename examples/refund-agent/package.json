@@ -5,6 +5,9 @@
   "type": "module",
   "description": "Demo Bedrock refund agent instrumented with Rewind, including the poisoned-memory failure.",
   "license": "Apache-2.0",
+  "exports": {
+    ".": "./src/agent.ts"
+  },
   "scripts": {
     "start": "tsx src/main.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
