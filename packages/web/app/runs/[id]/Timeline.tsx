@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { RewindEvent } from "@/lib/api";
+import { ForkPanel } from "./ForkPanel";
 
 const KIND_COLORS: Record<string, string> = {
   llm_call: "#7aa2f7",
@@ -21,9 +22,11 @@ function preview(payload: unknown): string {
 export function Timeline({
   events,
   initialSeq,
+  runId,
 }: {
   events: RewindEvent[];
   initialSeq?: number;
+  runId: string;
 }) {
   const initialIdx =
     initialSeq != null
@@ -175,6 +178,12 @@ export function Timeline({
               >
                 {JSON.stringify(selected.payload, null, 2)}
               </pre>
+              {selected.kind === "memory_write" && (
+                <ForkPanel
+                  runId={runId}
+                  memoryValue={String((selected.payload as { value?: unknown }).value ?? "")}
+                />
+              )}
             </>
           ) : (
             <span style={{ color: "#5c6370" }}>No events.</span>

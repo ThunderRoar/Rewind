@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getRun } from "@/lib/api";
 import { Timeline } from "./Timeline";
 
+export const dynamic = "force-dynamic";
+
 export default async function RunPage({
   params,
   searchParams,
@@ -23,7 +25,7 @@ export default async function RunPage({
       <p style={{ color: "#8b93a7", marginTop: 0 }}>
         {run.agent_slug} · {run.status} · {run.region} · {events.length} events
       </p>
-      <Timeline events={events} initialSeq={initialSeq} />
+      <Timeline events={events} initialSeq={initialSeq} runId={run.id} />
     </main>
   );
 }

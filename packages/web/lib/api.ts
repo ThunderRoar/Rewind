@@ -66,3 +66,22 @@ export async function searchEvents(
   if (!res.ok) throw new Error(`POST /search ${res.status}: ${await res.text()}`);
   return res.json();
 }
+
+export interface ReplayResult {
+  forkId: string;
+  originalRunId: string;
+  controlRunId: string;
+  editedRunId: string;
+  originalValue: string;
+  editedValue: string;
+}
+
+export async function replayFork(runId: string, editedValue: string): Promise<ReplayResult> {
+  const res = await fetch(`${API_URL}/replay`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ runId, editedValue }),
+  });
+  if (!res.ok) throw new Error(`POST /replay ${res.status}: ${await res.text()}`);
+  return res.json();
+}

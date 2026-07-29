@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getRuns } from "@/lib/api";
 import { SearchBar } from "./SearchBar";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const { runs } = await getRuns();
   return (
@@ -29,7 +31,9 @@ export default async function Home() {
               {r.label ?? r.id}
             </Link>
             <span style={{ color: "#8b93a7", marginLeft: 10, fontSize: 14 }}>
-              {r.agent_slug} · {r.event_count} events · {r.status}
+              {r.agent_slug} · {r.event_count} events · {r.status} ·{" "}
+              <code style={{ color: "#5c6370" }}>{r.id.slice(0, 8)}</code> ·{" "}
+              {new Date(r.created_at).toLocaleString()}
             </span>
           </li>
         ))}
