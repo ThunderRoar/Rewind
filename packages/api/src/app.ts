@@ -3,6 +3,7 @@ import Fastify, { type FastifyInstance } from "fastify";
 import { getPool } from "./db.js";
 import { eventsRoutes } from "./routes/events.js";
 import { readRoutes } from "./routes/read.js";
+import { replayRoutes } from "./routes/replay.js";
 import { runsRoutes } from "./routes/runs.js";
 import { searchRoutes } from "./routes/search.js";
 
@@ -18,6 +19,7 @@ export function buildApp(): FastifyInstance {
   app.register(eventsRoutes);
   app.register(readRoutes);
   app.register(searchRoutes);
+  app.register(replayRoutes);
 
   // Liveness (no DB).
   app.get("/health/live", async () => ({ status: "ok" }));
