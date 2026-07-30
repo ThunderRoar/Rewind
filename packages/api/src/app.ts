@@ -2,6 +2,7 @@ import cors from "@fastify/cors";
 import Fastify, { type FastifyInstance } from "fastify";
 import { getPool } from "./db.js";
 import { eventsRoutes } from "./routes/events.js";
+import { observabilityRoutes } from "./routes/observability.js";
 import { readRoutes } from "./routes/read.js";
 import { replayRoutes } from "./routes/replay.js";
 import { runsRoutes } from "./routes/runs.js";
@@ -20,6 +21,7 @@ export function buildApp(): FastifyInstance {
   app.register(readRoutes);
   app.register(searchRoutes);
   app.register(replayRoutes);
+  app.register(observabilityRoutes);
 
   // Liveness (no DB).
   app.get("/health/live", async () => ({ status: "ok" }));

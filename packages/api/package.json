@@ -10,11 +10,15 @@
     "dev": "tsx watch src/server.ts",
     "embed": "tsx src/embed/run.ts",
     "build": "tsc -p tsconfig.json",
+    "build:lambda": "node scripts/build-lambda.mjs",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1095.0",
+    "@aws-sdk/client-s3": "^3.1098.0",
+    "@aws-sdk/client-sns": "^3.1098.0",
+    "@fastify/aws-lambda": "^6.4.0",
     "@fastify/cors": "^11.3.0",
     "@rewind/example-refund-agent": "workspace:*",
     "@rewind/sdk-node": "workspace:*",
@@ -27,6 +31,7 @@
     "@aws-sdk/client-bedrock": "^3.1095.0",
     "@types/node": "^22.10.5",
     "@types/pg": "^8.11.10",
+    "esbuild": "^0.28.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   }

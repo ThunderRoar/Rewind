@@ -108,6 +108,7 @@ class RewindRun {
           model: command?.input?.modelId,
           input: command?.input,
           output: response?.output ?? null,
+          usage: response?.usage ?? null,
           latencyMs: Date.now() - startedAt,
         });
       }
