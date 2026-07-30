@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rewind": {
+      "command": "node",
+      "args": ["./packages/mcp-server/dist/index.js"],
+      "env": { "REWIND_API_URL": "http://localhost:3000" }
+    }
+  }
+}
