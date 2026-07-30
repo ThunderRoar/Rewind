@@ -40,4 +40,14 @@ console.log("poisoned runId:", poisoned.runId);
 console.log("POISONED result:", await runRefundAgent(poisoned, { ownerRecord: POISONED_OWNER }));
 await poisoned.end();
 
+// Self-correcting: same poisoned memory, but the agent recalls its own past
+// failure (via find_similar_failures) and refuses despite the record.
+const selfCorrect = await Rewind.startRun("refund-self-correcting");
+console.log("self-correcting runId:", selfCorrect.runId);
+console.log(
+  "SELF-CORRECT result:",
+  await runRefundAgent(selfCorrect, { ownerRecord: POISONED_OWNER, selfCorrect: true })
+);
+await selfCorrect.end();
+
 console.log("mock refund ledger:", refundLedger);
