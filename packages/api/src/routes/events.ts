@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { getPool } from "../db.js";
 import { payloadSha } from "../hash.js";
+import { isOverflow, putOverflow } from "../s3.js";
 
 const EVENT_KINDS = [
   "llm_call",
@@ -38,10 +39,18 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
     try {
       await client.query("BEGIN");
       for (const e of events) {
+        const sha = payloadSha(e.payload);
+        const json = JSON.stringify(e.payload);
+        let storedPayload: unknown = e.payload;
+        let s3uri: string | null = null;
+        if (isOverflow(json)) {
+          s3uri = await putOverflow(runId, e.seq, json);
+          storedPayload = { _overflow: true, bytes: Buffer.byteLength(json, "utf8"), s3: s3uri };
+        }
         await client.query(
-          `INSERT INTO events (run_id, seq, parent_event, kind, payload, payload_sha)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [runId, e.seq, e.parentEvent ?? null, e.kind, e.payload, payloadSha(e.payload)]
+          `INSERT INTO events (run_id, seq, parent_event, kind, payload, payload_sha, s3_overflow)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [runId, e.seq, e.parentEvent ?? null, e.kind, storedPayload, sha, s3uri]
         );
       }
       await client.query("COMMIT");

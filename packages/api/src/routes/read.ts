@@ -39,7 +39,7 @@ export async function readRoutes(app: FastifyInstance): Promise<void> {
       }
 
       const events = await pool.query(
-        `SELECT id, seq, parent_event, kind, payload, payload_sha, ts
+        `SELECT id, seq, parent_event, kind, payload, payload_sha, s3_overflow, ts
          FROM events WHERE run_id = $1 ORDER BY seq LIMIT $2`,
         [id, limit]
       );

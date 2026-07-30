@@ -17,11 +17,12 @@ export async function replayRoutes(app: FastifyInstance): Promise<void> {
       reply.code(400);
       return { error: "invalid_body", details: parsed.error.flatten() };
     }
+    const owner = (req.headers["x-owner"] as string | undefined) ?? parsed.data.owner;
     try {
       return await forkAndReplay({
         originalRunId: parsed.data.runId,
         editedValue: parsed.data.editedValue,
-        owner: parsed.data.owner,
+        owner,
       });
     } catch (err) {
       req.log.error({ err }, "POST /replay failed");

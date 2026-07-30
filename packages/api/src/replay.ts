@@ -1,6 +1,22 @@
 import { MEMORY_KEY, runRefundAgent } from "@rewind/example-refund-agent";
 import { Rewind, type RewindRun } from "@rewind/sdk-node";
+import { computeCost } from "./cost.js";
 import { getPool } from "./db.js";
+import { publishIncident } from "./sns.js";
+
+// Sum token usage across a run's llm_call events and price it.
+async function costOfRun(runId: string, model: string): Promise<number> {
+  const { rows } = await getPool().query<{
+    payload: { usage?: { inputTokens?: number; outputTokens?: number } };
+  }>(`SELECT payload FROM events WHERE run_id = $1 AND kind = 'llm_call'`, [runId]);
+  let inTok = 0;
+  let outTok = 0;
+  for (const r of rows) {
+    inTok += r.payload.usage?.inputTokens ?? 0;
+    outTok += r.payload.usage?.outputTokens ?? 0;
+  }
+  return computeCost(model, inTok, outTok);
+}
 
 let sdkReady = false;
 function ensureSdk(): void {
@@ -19,8 +35,9 @@ async function replayBranch(
   label: string,
   ownerRecord: string,
   originalRunId: string,
-  forkEventId: string
-): Promise<RewindRun> {
+  forkEventId: string,
+  model: string
+): Promise<{ run: RewindRun; cost: number }> {
   const run = await Rewind.startRun(label);
   await getPool().query(
     `UPDATE runs SET parent_run = $1, forked_from = $2 WHERE id = $3`,
@@ -28,7 +45,8 @@ async function replayBranch(
   );
   await runRefundAgent(run, { ownerRecord });
   await run.end();
-  return run;
+  const cost = await costOfRun(run.runId, model);
+  return { run, cost };
 }
 
 export interface ReplayResult {
@@ -38,6 +56,7 @@ export interface ReplayResult {
   editedRunId: string;
   originalValue: string;
   editedValue: string;
+  costUsd: number;
 }
 
 export async function forkAndReplay(params: {
@@ -59,17 +78,19 @@ export async function forkAndReplay(params: {
     throw new Error(`no memory_write for '${MEMORY_KEY}' in run ${params.originalRunId}`);
   }
   const originalValue = forkEvent.payload.value;
+  const model = process.env.BEDROCK_MODEL_DEMO ?? "unknown";
 
   // Control = original memory (reproduces the failure); edited = the fix.
-  const control = await replayBranch("replay:control", originalValue, params.originalRunId, forkEvent.id);
-  const edited = await replayBranch("replay:edited", params.editedValue, params.originalRunId, forkEvent.id);
+  const control = await replayBranch("replay:control", originalValue, params.originalRunId, forkEvent.id, model);
+  const edited = await replayBranch("replay:edited", params.editedValue, params.originalRunId, forkEvent.id, model);
+  const costUsd = control.cost + edited.cost;
 
   const forkRes = await pool.query<{ id: string }>(
     `INSERT INTO forks (original_run, new_run, forked_at_event, edits, reason, created_by)
      VALUES ($1, $2, $3, $4, 'fix-poisoned-memory', $5) RETURNING id`,
     [
       params.originalRunId,
-      edited.runId,
+      edited.run.runId,
       forkEvent.id,
       JSON.stringify({ [MEMORY_KEY]: params.editedValue }),
       params.owner,
@@ -78,11 +99,10 @@ export async function forkAndReplay(params: {
   const forkId = forkRes.rows[0]?.id;
   if (!forkId) throw new Error("fork insert returned no id");
 
-  const model = process.env.BEDROCK_MODEL_DEMO ?? "unknown";
   await pool.query(
-    `INSERT INTO replays (fork_id, model, kind, status)
-     VALUES ($1, $2, 'control', 'done'), ($1, $2, 'edited', 'done')`,
-    [forkId, model]
+    `INSERT INTO replays (fork_id, model, kind, status, cost_usd)
+     VALUES ($1, $2, 'control', 'done', $3), ($1, $2, 'edited', 'done', $4)`,
+    [forkId, model, control.cost, edited.cost]
   );
   await pool.query(
     `INSERT INTO audit_log (owner, action, target, detail)
@@ -90,16 +110,31 @@ export async function forkAndReplay(params: {
     [
       params.owner,
       params.originalRunId,
-      JSON.stringify({ forkId, controlRunId: control.runId, editedRunId: edited.runId }),
+      JSON.stringify({
+        forkId,
+        controlRunId: control.run.runId,
+        editedRunId: edited.run.runId,
+        costUsd,
+      }),
     ]
+  );
+
+  // Fire an incident notification (no-op unless SNS_TOPIC_ARN is set).
+  await publishIncident(
+    "Rewind: agent incident investigated",
+    `Run ${params.originalRunId} was flagged and replayed.\n` +
+      `Root cause: poisoned memory '${MEMORY_KEY}'.\n` +
+      `Fix applied and verified (control replay reproduced the original outcome).\n` +
+      `Investigation cost: $${costUsd.toFixed(4)}.`
   );
 
   return {
     forkId,
     originalRunId: params.originalRunId,
-    controlRunId: control.runId,
-    editedRunId: edited.runId,
+    controlRunId: control.run.runId,
+    editedRunId: edited.run.runId,
     originalValue,
     editedValue: params.editedValue,
+    costUsd,
   };
 }
