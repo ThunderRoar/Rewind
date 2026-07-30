@@ -50,10 +50,11 @@ export default async function ComparePage({
   searchParams,
 }: {
   params: Promise<{ a: string; b: string }>;
-  searchParams: Promise<{ control?: string }>;
+  searchParams: Promise<{ control?: string; cost?: string }>;
 }) {
   const { a, b } = await params;
-  const { control } = await searchParams;
+  const { control, cost } = await searchParams;
+  const costUsd = cost ? Number(cost) : null;
 
   const [left, right, ctrl] = await Promise.all([
     getRun(a),
@@ -123,6 +124,22 @@ export default async function ComparePage({
           </div>
         </div>
       </div>
+
+      {costUsd != null && origRefund && (
+        <div
+          style={{
+            padding: "10px 14px",
+            borderRadius: 8,
+            background: "#0f131c",
+            border: "1px solid #232a3a",
+            marginBottom: 16,
+            color: "#c8d3f5",
+          }}
+        >
+          💸 This investigation cost <b>${costUsd.toFixed(4)}</b> and caught a{" "}
+          <b style={{ color: "#f7768e" }}>$4,200</b> wrong payout.
+        </div>
+      )}
 
       <div style={{ color: "#8b93a7", fontSize: 12, marginBottom: 8 }}>
         Rows <span style={{ background: "#1a1420", padding: "1px 6px", borderRadius: 4 }}>highlighted</span>{" "}

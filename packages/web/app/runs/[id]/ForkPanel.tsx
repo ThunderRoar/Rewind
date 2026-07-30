@@ -72,10 +72,11 @@ export function ForkPanel({ runId, memoryValue }: { runId: string; memoryValue: 
       {result && (
         <div style={{ marginTop: 12, fontSize: 13 }}>
           <div style={{ color: "#9ece6a" }}>
-            ✅ Replayed — control + edited runs created.
+            ✅ Replayed — control + edited runs created · investigation cost{" "}
+            <b>${result.costUsd.toFixed(4)}</b>
           </div>
           <a
-            href={`/compare/${result.originalRunId}/${result.editedRunId}?control=${result.controlRunId}`}
+            href={`/compare/${result.originalRunId}/${result.editedRunId}?control=${result.controlRunId}&cost=${result.costUsd}`}
             style={{ color: "#7aa2f7", display: "block", marginTop: 6, fontWeight: 600 }}
           >
             → View side-by-side diff

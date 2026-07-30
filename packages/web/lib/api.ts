@@ -74,6 +74,7 @@ export interface ReplayResult {
   editedRunId: string;
   originalValue: string;
   editedValue: string;
+  costUsd: number;
 }
 
 export async function replayFork(runId: string, editedValue: string): Promise<ReplayResult> {
@@ -83,5 +84,33 @@ export async function replayFork(runId: string, editedValue: string): Promise<Re
     body: JSON.stringify({ runId, editedValue }),
   });
   if (!res.ok) throw new Error(`POST /replay ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
+export interface Stats {
+  runs: number;
+  events: number;
+  forks: number;
+  replays: number;
+  total_cost: number;
+}
+
+export interface AuditEntry {
+  owner: string;
+  action: string;
+  target: string;
+  detail: unknown;
+  ts: string;
+}
+
+export async function getStats(): Promise<Stats> {
+  const res = await fetch(`${API_URL}/stats`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`GET /stats ${res.status}`);
+  return res.json();
+}
+
+export async function getAudit(): Promise<{ entries: AuditEntry[] }> {
+  const res = await fetch(`${API_URL}/audit`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`GET /audit ${res.status}`);
   return res.json();
 }
