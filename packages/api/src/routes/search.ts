@@ -38,16 +38,26 @@ export async function searchRoutes(app: FastifyInstance): Promise<void> {
     }
     params.push(limit);
     const limitParam = `$${params.length}`;
+    // Over-fetch nearest neighbours so post-filters still fill the result page.
+    const pool = Math.max(limit * 8, 60);
 
+    // The vector top-k runs FIRST, in its own CTE, so the planner uses the
+    // distributed vector index (event_embedding_idx) instead of full-scanning.
     // <=> is cosine distance, matching the vector_cosine_ops index.
     const sql = `
-      SELECT e.id, e.run_id, e.seq, e.kind, e.ts, ee.summary,
-             ee.embedding <=> $1::VECTOR AS distance
-      FROM event_embeddings ee
-      JOIN events e ON e.id = ee.event_id
+      WITH nn AS (
+        SELECT event_id, embedding <=> $1::VECTOR AS distance
+        FROM event_embeddings
+        ORDER BY embedding <=> $1::VECTOR
+        LIMIT ${pool}
+      )
+      SELECT e.id, e.run_id, e.seq, e.kind, e.ts, ee.summary, nn.distance
+      FROM nn
+      JOIN events e ON e.id = nn.event_id
+      JOIN event_embeddings ee ON ee.event_id = nn.event_id
       ${excludeSynthetic ? "JOIN runs r ON r.id = e.run_id" : ""}
       ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
-      ORDER BY ee.embedding <=> $1::VECTOR
+      ORDER BY nn.distance
       LIMIT ${limitParam}`;
 
     const { rows } = await getPool().query(sql, params);
