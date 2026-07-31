@@ -17,13 +17,28 @@ export default async function RunPage({
   const initialSeq = seq != null ? Number(seq) : undefined;
 
   return (
-    <main style={{ padding: 24, maxWidth: 1200, margin: "0 auto" }}>
-      <Link href="/" style={{ color: "#7aa2f7", fontSize: 14 }}>
-        ← runs
-      </Link>
-      <h1 style={{ marginBottom: 2 }}>{run.label ?? run.id}</h1>
-      <p style={{ color: "#8b93a7", marginTop: 0 }}>
-        {run.agent_slug} · {run.status} · {run.region} · {events.length} events
+    <main className="container wide">
+      <div className="crumb">
+        <Link href="/timelines">Timelines</Link>
+        <span style={{ color: "var(--faint)" }}>/</span>
+        <span>{run.label ?? run.id.slice(0, 8)}</span>
+      </div>
+      <h1>{run.label ?? run.id}</h1>
+      <p className="meta-line">
+        {run.agent_slug}
+        <span className="sep">·</span>
+        {run.status}
+        <span className="sep">·</span>
+        {run.region}
+        <span className="sep">·</span>
+        {events.length} events
+        {run.parent_run && (
+          <>
+            <span className="sep">·</span>
+            branched from{" "}
+            <Link href={`/runs/${run.parent_run}`}>{run.parent_run.slice(0, 7)}</Link>
+          </>
+        )}
       </p>
       <Timeline events={events} initialSeq={initialSeq} runId={run.id} />
     </main>

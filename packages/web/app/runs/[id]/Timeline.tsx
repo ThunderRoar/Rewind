@@ -4,19 +4,20 @@ import { useMemo, useState } from "react";
 import type { RewindEvent } from "@/lib/api";
 import { ForkPanel } from "./ForkPanel";
 
-const KIND_COLORS: Record<string, string> = {
-  llm_call: "#7aa2f7",
-  tool_call: "#e0af68",
-  tool_result: "#9ece6a",
-  memory_read: "#bb9af7",
-  memory_write: "#f7768e",
-  observation: "#7dcfff",
-  ccloud_action: "#ff9e64",
-};
+const KNOWN = new Set([
+  "llm_call",
+  "tool_call",
+  "tool_result",
+  "memory_read",
+  "memory_write",
+  "observation",
+  "ccloud_action",
+]);
+const kindColor = (kind: string) => (KNOWN.has(kind) ? `var(--k-${kind})` : "var(--faint)");
 
 function preview(payload: unknown): string {
   const s = JSON.stringify(payload);
-  return s.length > 60 ? s.slice(0, 60) + "…" : s;
+  return s.length > 64 ? s.slice(0, 64) + "…" : s;
 }
 
 export function Timeline({
@@ -30,12 +31,14 @@ export function Timeline({
 }) {
   const initialIdx =
     initialSeq != null
-      ? Math.max(events.findIndex((e) => e.seq === initialSeq), 0)
+      ? Math.max(
+          events.findIndex((e) => e.seq === initialSeq),
+          0
+        )
       : events.length - 1;
   const [headIdx, setHeadIdx] = useState(initialIdx);
   const selected = events[headIdx] ?? null;
 
-  // Memory state as of the scrubber head: fold memory_write events 0..head.
   const memories = useMemo(() => {
     const m = new Map<string, unknown>();
     for (let i = 0; i <= headIdx && i < events.length; i++) {
@@ -50,134 +53,106 @@ export function Timeline({
 
   return (
     <div>
-      {/* Scrubber */}
-      <div style={{ marginBottom: 12 }}>
+      <div style={{ margin: "16px 0 6px" }}>
         <input
           type="range"
+          className="scrubber"
           min={0}
           max={Math.max(events.length - 1, 0)}
           value={headIdx}
           onChange={(e) => setHeadIdx(Number(e.target.value))}
-          style={{ width: "100%" }}
         />
-        <div style={{ color: "#8b93a7", fontSize: 13 }}>
-          state as of event {headIdx + 1} / {events.length}
+        <div style={{ color: "var(--dim)", fontSize: 13, marginTop: 6 }}>
+          state as of event <b style={{ color: "var(--text)" }}>{headIdx + 1}</b> / {events.length}
         </div>
       </div>
 
-      {/* Memory state at the head */}
-      <div
-        style={{
-          marginBottom: 16,
-          padding: "10px 12px",
-          borderRadius: 8,
-          border: "1px solid #232a3a",
-          background: "#0f131c",
-        }}
-      >
-        <div style={{ color: "#8b93a7", fontSize: 12, marginBottom: 6 }}>
-          MEMORIES AT THIS POINT ({memories.length})
-        </div>
+      <div className="memories">
+        <div className="cap">Memories at this point · {memories.length}</div>
         {memories.length === 0 ? (
-          <span style={{ color: "#5c6370", fontSize: 13 }}>none yet</span>
+          <span style={{ color: "var(--faint)", fontSize: 13 }}>none yet</span>
         ) : (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <div className="chips">
             {memories.map(([k, v]) => (
-              <span
-                key={k}
-                style={{
-                  fontSize: 12,
-                  fontFamily: "monospace",
-                  padding: "4px 8px",
-                  borderRadius: 6,
-                  background: "#1b2333",
-                  border: "1px solid #f7768e55",
-                  color: "#c8d3f5",
-                }}
-              >
-                <b style={{ color: "#f7768e" }}>{k}</b> = {preview(v)}
+              <span className="chip" key={k}>
+                <b className="k">{k}</b> = {preview(v)}
               </span>
             ))}
           </div>
         )}
       </div>
 
-      <div style={{ display: "flex", gap: 16, height: "calc(100vh - 320px)" }}>
-        <div
-          style={{
-            width: 380,
-            overflowY: "auto",
-            borderRadius: 8,
-            border: "1px solid #232a3a",
-            background: "#0f131c",
-          }}
-        >
-          {events.map((e, i) => {
-            const active = i === headIdx;
-            const future = i > headIdx;
-            return (
-              <button
-                key={e.id}
-                onClick={() => setHeadIdx(i)}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "8px 12px",
-                  border: "none",
-                  borderLeft: `3px solid ${KIND_COLORS[e.kind] ?? "#5c6370"}`,
-                  background: active ? "#1b2333" : "transparent",
-                  color: "#e6e6e6",
-                  cursor: "pointer",
-                  fontSize: 13,
-                  opacity: future ? 0.3 : 1,
-                }}
-              >
-                <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
-                  <span style={{ color: "#5c6370", width: 44 }}>#{e.seq}</span>
-                  <span style={{ color: KIND_COLORS[e.kind] ?? "#e6e6e6", fontWeight: 600 }}>
-                    {e.kind}
-                  </span>
+      <div className="tl-split">
+        <div className="tl-left">
+          <div className="graph">
+            {events.map((e, i) => {
+              const active = i === headIdx;
+              const future = i > headIdx;
+              const isFirst = i === 0;
+              const isLast = i === events.length - 1;
+              return (
+                <div
+                  key={e.id}
+                  className={`graph-row${active ? " active" : ""}${future ? " future" : ""}`}
+                  onClick={() => setHeadIdx(i)}
+                >
+                  <div className="graph-gutter">
+                    <svg viewBox="0 0 46 100" preserveAspectRatio="none" aria-hidden>
+                      <line
+                        x1="16"
+                        y1={isFirst ? "50" : "0"}
+                        x2="16"
+                        y2={isLast ? "50" : "100"}
+                        stroke="var(--border-hi)"
+                        strokeWidth="2"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </svg>
+                    <span
+                      className="lane-node"
+                      style={{
+                        position: "absolute",
+                        left: 16,
+                        top: "50%",
+                        transform: "translate(-50%, -50%)",
+                        width: active ? 13 : 10,
+                        height: active ? 13 : 10,
+                        borderRadius: "50%",
+                        background: kindColor(e.kind),
+                        boxShadow: active
+                          ? `0 0 0 3px color-mix(in srgb, ${kindColor(e.kind)} 30%, transparent), 0 0 0 5px var(--surface)`
+                          : "0 0 0 3px var(--surface)",
+                      }}
+                    />
+                  </div>
+                  <div className="body">
+                    <div className="head">
+                      <span className="seq">#{e.seq}</span>
+                      <span className="kind" style={{ color: kindColor(e.kind) }}>
+                        {e.kind}
+                      </span>
+                    </div>
+                    <div className="prev">{preview(e.payload)}</div>
+                  </div>
                 </div>
-                <div style={{ color: "#6b7280", fontFamily: "monospace", marginTop: 2 }}>
-                  {preview(e.payload)}
-                </div>
-              </button>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            borderRadius: 8,
-            border: "1px solid #232a3a",
-            background: "#0f131c",
-            padding: 16,
-          }}
-        >
+        <div className="detail-pane">
           {selected ? (
             <>
-              <div style={{ color: "#8b93a7", fontSize: 13, marginBottom: 12 }}>
-                <span style={{ color: KIND_COLORS[selected.kind] ?? "#e6e6e6", fontWeight: 600 }}>
+              <div className="dhead">
+                <span className="dot" style={{ background: kindColor(selected.kind) }} />
+                <span className="kind" style={{ color: kindColor(selected.kind) }}>
                   {selected.kind}
-                </span>{" "}
-                · #{selected.seq} · {new Date(selected.ts).toLocaleString()} · sha{" "}
-                {selected.payload_sha.slice(0, 12)}
+                </span>
+                <span>· #{selected.seq}</span>
+                <span>· {new Date(selected.ts).toLocaleString()}</span>
+                <span>· sha {selected.payload_sha.slice(0, 12)}</span>
               </div>
-              <pre
-                style={{
-                  margin: 0,
-                  fontFamily: "monospace",
-                  fontSize: 13,
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  color: "#c8d3f5",
-                }}
-              >
-                {JSON.stringify(selected.payload, null, 2)}
-              </pre>
+              <pre>{JSON.stringify(selected.payload, null, 2)}</pre>
               {selected.kind === "memory_write" && (
                 <ForkPanel
                   runId={runId}
@@ -186,7 +161,7 @@ export function Timeline({
               )}
             </>
           ) : (
-            <span style={{ color: "#5c6370" }}>No events.</span>
+            <span style={{ color: "var(--faint)" }}>No events.</span>
           )}
         </div>
       </div>

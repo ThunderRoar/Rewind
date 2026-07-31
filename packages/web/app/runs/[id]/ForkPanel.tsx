@@ -22,62 +22,38 @@ export function ForkPanel({ runId, memoryValue }: { runId: string; memoryValue: 
   }
 
   return (
-    <div
-      style={{
-        marginTop: 16,
-        padding: 12,
-        border: "1px solid #f7768e55",
-        borderRadius: 8,
-        background: "#1a1420",
-      }}
-    >
-      <div style={{ color: "#f7768e", fontWeight: 600, marginBottom: 8 }}>
-        🔱 Fork &amp; fix this memory
+    <div className="fork">
+      <div className="cap">
+        <svg width="14" height="14" viewBox="0 0 18 18" fill="none" aria-hidden>
+          <circle cx="4.5" cy="4" r="2.2" stroke="currentColor" strokeWidth="1.6" />
+          <circle cx="4.5" cy="14" r="2.2" stroke="currentColor" strokeWidth="1.6" />
+          <circle cx="13.5" cy="9" r="2.2" stroke="currentColor" strokeWidth="1.6" />
+          <path
+            d="M4.5 6.2v5.6M4.5 9h4.2c1.6 0 2.2-.8 3-1.6"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+        </svg>
+        Fork &amp; fix this memory
       </div>
-      <textarea
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        rows={3}
-        style={{
-          width: "100%",
-          boxSizing: "border-box",
-          fontFamily: "monospace",
-          fontSize: 13,
-          background: "#0f131c",
-          color: "#c8d3f5",
-          border: "1px solid #232a3a",
-          borderRadius: 6,
-          padding: 8,
-        }}
-      />
-      <button
-        onClick={replay}
-        disabled={loading}
-        style={{
-          marginTop: 8,
-          padding: "8px 16px",
-          borderRadius: 8,
-          border: "none",
-          background: loading ? "#3a2a30" : "#f7768e",
-          color: "#fff",
-          cursor: loading ? "default" : "pointer",
-          fontWeight: 600,
-        }}
-      >
+      <textarea value={value} onChange={(e) => setValue(e.target.value)} rows={3} />
+      <button className="btn btn-primary" onClick={replay} disabled={loading} style={{ marginTop: 9 }}>
         {loading ? "Replaying through Bedrock… (~30s)" : "Fork & Replay"}
       </button>
 
-      {error && <div style={{ color: "#f7768e", marginTop: 8, fontSize: 13 }}>{error}</div>}
+      {error && <div style={{ color: "var(--bad)", marginTop: 9, fontSize: 13 }}>{error}</div>}
 
       {result && (
         <div style={{ marginTop: 12, fontSize: 13 }}>
-          <div style={{ color: "#9ece6a" }}>
-            ✅ Replayed — control + edited runs created · investigation cost{" "}
+          <div style={{ color: "var(--good)", display: "flex", alignItems: "center", gap: 7 }}>
+            <span className="dot" style={{ background: "var(--good)" }} />
+            Replayed — control + edited branches created · investigation cost{" "}
             <b>${result.costUsd.toFixed(4)}</b>
           </div>
           <a
             href={`/compare/${result.originalRunId}/${result.editedRunId}?control=${result.controlRunId}&cost=${result.costUsd}`}
-            style={{ color: "#7aa2f7", display: "block", marginTop: 6, fontWeight: 600 }}
+            style={{ display: "block", marginTop: 8, fontWeight: 600 }}
           >
             → View side-by-side diff
           </a>
