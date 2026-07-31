@@ -17,7 +17,7 @@ export async function replayRoutes(app: FastifyInstance): Promise<void> {
       reply.code(400);
       return { error: "invalid_body", details: parsed.error.flatten() };
     }
-    const owner = (req.headers["x-owner"] as string | undefined) ?? parsed.data.owner;
+    const owner = req.ownerScope ?? (req.headers["x-owner"] as string | undefined) ?? parsed.data.owner;
     try {
       return await forkAndReplay({
         originalRunId: parsed.data.runId,

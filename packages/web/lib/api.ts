@@ -1,5 +1,11 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
+// Public demo key sent when the API has auth enabled.
+function authHeaders(): Record<string, string> {
+  const key = process.env.NEXT_PUBLIC_REWIND_API_KEY;
+  return key ? { "x-api-key": key } : {};
+}
+
 export interface RunSummary {
   id: string;
   label: string | null;
@@ -37,13 +43,16 @@ export interface RunDetail {
 }
 
 export async function getRuns(): Promise<{ runs: RunSummary[] }> {
-  const res = await fetch(`${API_URL}/runs`, { cache: "no-store" });
+  const res = await fetch(`${API_URL}/runs`, { cache: "no-store", headers: authHeaders() });
   if (!res.ok) throw new Error(`GET /runs ${res.status}`);
   return res.json();
 }
 
 export async function getRun(id: string, limit = 2000): Promise<RunDetail> {
-  const res = await fetch(`${API_URL}/runs/${id}?limit=${limit}`, { cache: "no-store" });
+  const res = await fetch(`${API_URL}/runs/${id}?limit=${limit}`, {
+    cache: "no-store",
+    headers: authHeaders(),
+  });
   if (!res.ok) throw new Error(`GET /runs/${id} ${res.status}`);
   return res.json();
 }
@@ -64,7 +73,7 @@ export async function searchEvents(
 ): Promise<{ query: string; results: SearchResult[] }> {
   const res = await fetch(`${API_URL}/search`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...authHeaders() },
     body: JSON.stringify({ query, limit, excludeSynthetic: true }),
   });
   if (!res.ok) throw new Error(`POST /search ${res.status}: ${await res.text()}`);
@@ -84,7 +93,7 @@ export interface ReplayResult {
 export async function replayFork(runId: string, editedValue: string): Promise<ReplayResult> {
   const res = await fetch(`${API_URL}/replay`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...authHeaders() },
     body: JSON.stringify({ runId, editedValue }),
   });
   if (!res.ok) throw new Error(`POST /replay ${res.status}: ${await res.text()}`);
@@ -108,13 +117,13 @@ export interface AuditEntry {
 }
 
 export async function getStats(): Promise<Stats> {
-  const res = await fetch(`${API_URL}/stats`, { cache: "no-store" });
+  const res = await fetch(`${API_URL}/stats`, { cache: "no-store", headers: authHeaders() });
   if (!res.ok) throw new Error(`GET /stats ${res.status}`);
   return res.json();
 }
 
 export async function getAudit(): Promise<{ entries: AuditEntry[] }> {
-  const res = await fetch(`${API_URL}/audit`, { cache: "no-store" });
+  const res = await fetch(`${API_URL}/audit`, { cache: "no-store", headers: authHeaders() });
   if (!res.ok) throw new Error(`GET /audit ${res.status}`);
   return res.json();
 }

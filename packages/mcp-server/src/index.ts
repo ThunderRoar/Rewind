@@ -4,11 +4,19 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 
 const API_URL = process.env.REWIND_API_URL ?? "http://localhost:3000";
+const API_KEY = process.env.REWIND_API_KEY;
+
+function headers(json = false): Record<string, string> {
+  const h: Record<string, string> = {};
+  if (json) h["content-type"] = "application/json";
+  if (API_KEY) h["x-api-key"] = API_KEY;
+  return h;
+}
 
 async function post(path: string, body: unknown): Promise<unknown> {
   const res = await fetch(`${API_URL}${path}`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: headers(true),
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`${path} ${res.status}: ${await res.text()}`);
@@ -49,7 +57,7 @@ server.registerTool(
     inputSchema: { runId: z.string() },
   },
   async ({ runId }) => {
-    const res = await fetch(`${API_URL}/runs/${runId}`);
+    const res = await fetch(`${API_URL}/runs/${runId}`, { headers: headers() });
     if (!res.ok) throw new Error(`GET /runs/${runId} ${res.status}`);
     return { content: [{ type: "text", text: JSON.stringify(await res.json(), null, 2) }] };
   }

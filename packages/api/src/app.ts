@@ -1,5 +1,6 @@
 import cors from "@fastify/cors";
 import Fastify, { type FastifyInstance } from "fastify";
+import { authHook } from "./auth.js";
 import { getPool } from "./db.js";
 import { eventsRoutes } from "./routes/events.js";
 import { observabilityRoutes } from "./routes/observability.js";
@@ -16,6 +17,7 @@ export function buildApp(): FastifyInstance {
   });
 
   app.register(cors, { origin: true });
+  app.addHook("onRequest", authHook);
   app.register(runsRoutes);
   app.register(eventsRoutes);
   app.register(readRoutes);

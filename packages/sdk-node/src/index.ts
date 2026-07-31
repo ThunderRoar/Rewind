@@ -13,6 +13,7 @@ export interface RewindInitOptions {
   agentSlug: string;
   owner: string;
   apiUrl?: string; // default http://localhost:3000
+  apiKey?: string; // sent as x-api-key when the API has auth enabled
   batchSize?: number; // flush when this many events buffer (default 20)
   flushIntervalMs?: number; // or after this long (default 500)
   bufferFile?: string; // durability sink if the API is down
@@ -23,10 +24,17 @@ interface Config {
   agentSlug: string;
   owner: string;
   apiUrl: string;
+  apiKey?: string;
   batchSize: number;
   flushIntervalMs: number;
   bufferFile: string;
   maxRetries: number;
+}
+
+function jsonHeaders(apiKey?: string): Record<string, string> {
+  const h: Record<string, string> = { "content-type": "application/json" };
+  if (apiKey) h["x-api-key"] = apiKey;
+  return h;
 }
 
 interface PendingEvent {
@@ -150,7 +158,7 @@ class RewindRun {
       try {
         const res = await fetch(`${this.cfg.apiUrl}/events`, {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: jsonHeaders(this.cfg.apiKey),
           body,
         });
         if (!res.ok) {
@@ -198,6 +206,7 @@ class RewindClient {
       agentSlug: opts.agentSlug,
       owner: opts.owner,
       apiUrl: opts.apiUrl ?? "http://localhost:3000",
+      apiKey: opts.apiKey ?? process.env.REWIND_API_KEY,
       batchSize: opts.batchSize ?? 20,
       flushIntervalMs: opts.flushIntervalMs ?? 500,
       bufferFile: opts.bufferFile ?? ".rewind-buffer.jsonl",
@@ -215,7 +224,7 @@ class RewindClient {
     const cfg = this.requireCfg();
     const res = await fetch(`${cfg.apiUrl}/runs`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: jsonHeaders(cfg.apiKey),
       body: JSON.stringify({
         agentSlug: cfg.agentSlug,
         owner: cfg.owner,
