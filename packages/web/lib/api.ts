@@ -8,6 +8,8 @@ export interface RunSummary {
   agent_slug: string;
   event_count: string | number;
   created_at: string;
+  parent_run: string | null;
+  forked_from: string | null;
 }
 
 export interface RewindEvent {
@@ -28,6 +30,8 @@ export interface RunDetail {
     region: string;
     agent_slug: string;
     created_at: string;
+    parent_run: string | null;
+    forked_from: string | null;
   };
   events: RewindEvent[];
 }

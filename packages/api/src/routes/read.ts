@@ -7,6 +7,7 @@ export async function readRoutes(app: FastifyInstance): Promise<void> {
   app.get("/runs", async () => {
     const { rows } = await getPool().query(
       `SELECT r.id, r.label, r.status, r.region, r.created_at,
+              r.parent_run, r.forked_from,
               a.slug AS agent_slug,
               (SELECT count(*) FROM events e WHERE e.run_id = r.id) AS event_count
        FROM runs r JOIN agents a ON a.id = r.agent_id
@@ -28,7 +29,8 @@ export async function readRoutes(app: FastifyInstance): Promise<void> {
       const pool = getPool();
 
       const runRes = await pool.query(
-        `SELECT r.id, r.label, r.status, r.region, r.created_at, a.slug AS agent_slug
+        `SELECT r.id, r.label, r.status, r.region, r.created_at, r.parent_run, r.forked_from,
+                a.slug AS agent_slug
          FROM runs r JOIN agents a ON a.id = r.agent_id WHERE r.id = $1`,
         [id]
       );
