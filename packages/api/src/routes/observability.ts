@@ -2,22 +2,36 @@ import type { FastifyInstance } from "fastify";
 import { getPool } from "../db.js";
 
 export async function observabilityRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/stats", async () => {
+  app.get("/stats", async (req) => {
+    const org = req.orgScope ?? null;
+    const agent = req.agentScope ?? null;
+    // runs/forks/replays/cost are per-company; events is the system-wide vector
+    // index size (the scale metric), so it stays global.
     const { rows } = await getPool().query(
       `SELECT
-         (SELECT count(*)::int FROM runs) AS runs,
+         (SELECT count(*)::int FROM runs r JOIN agents a ON a.id = r.agent_id
+            WHERE a.owner IS DISTINCT FROM 'backfill'
+              AND ($1::STRING IS NULL OR a.owner = $1)
+              AND ($2::STRING IS NULL OR a.slug = $2)) AS runs,
          (SELECT count(*)::int FROM events) AS events,
-         (SELECT count(*)::int FROM forks) AS forks,
-         (SELECT count(*)::int FROM replays) AS replays,
-         (SELECT coalesce(sum(cost_usd), 0)::float FROM replays) AS total_cost`
+         (SELECT count(*)::int FROM forks
+            WHERE ($1::STRING IS NULL OR created_by = $1)) AS forks,
+         (SELECT count(*)::int FROM replays rp JOIN forks f ON f.id = rp.fork_id
+            WHERE ($1::STRING IS NULL OR f.created_by = $1)) AS replays,
+         (SELECT coalesce(sum(rp.cost_usd), 0)::float FROM replays rp JOIN forks f ON f.id = rp.fork_id
+            WHERE ($1::STRING IS NULL OR f.created_by = $1)) AS total_cost`,
+      [org, agent]
     );
     return rows[0];
   });
 
-  app.get("/audit", async () => {
+  app.get("/audit", async (req) => {
     const { rows } = await getPool().query(
       `SELECT owner, action, target, detail, ts
-       FROM audit_log ORDER BY ts DESC LIMIT 50`
+       FROM audit_log
+       WHERE ($1::STRING IS NULL OR owner = $1)
+       ORDER BY ts DESC LIMIT 50`,
+      [req.orgScope ?? null]
     );
     return { entries: rows };
   });

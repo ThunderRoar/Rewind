@@ -1,15 +1,23 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 
-// REWIND_API_KEYS is a comma-separated list of `key:owner` pairs, e.g.
-//   judge-key-abc:me,teamx-key:teamx
-// If it's empty, auth is OFF (local dev) and every request is allowed.
-function parseKeys(): Map<string, string> {
-  const map = new Map<string, string>();
+// A key grants access as a principal in one org (company). With an agent scope
+// it's a "member" (sees only that sub-agent); without, it's an org "admin"
+// (sees every sub-agent in the company). Cross-org access is always denied.
+export interface Principal {
+  org: string;
+  agent?: string;
+}
+
+// REWIND_API_KEYS is a comma-separated list of `key:org[:agent]`, e.g.
+//   admin-key:acme,member-key:acme:acme-refund-agent
+// Empty => auth OFF (local dev), every request allowed and unscoped.
+function parseKeys(): Map<string, Principal> {
+  const map = new Map<string, Principal>();
   for (const part of (process.env.REWIND_API_KEYS ?? "").split(",")) {
     const trimmed = part.trim();
     if (!trimmed) continue;
-    const [key, owner] = trimmed.split(":");
-    if (key) map.set(key.trim(), (owner ?? key).trim());
+    const [key, org, agent] = trimmed.split(":").map((s) => s.trim());
+    if (key && org) map.set(key, agent ? { org, agent } : { org });
   }
   return map;
 }
@@ -18,34 +26,32 @@ export function authEnabled(): boolean {
   return parseKeys().size > 0;
 }
 
-export function ownerForKey(key: string | undefined): string | null {
+export function principalForKey(key: string | undefined): Principal | null {
   if (!key) return null;
   return parseKeys().get(key) ?? null;
 }
 
-// onRequest hook: gate everything except health checks behind a valid API key,
-// and attach the key's owner to the request for attribution/audit.
+// onRequest hook: gate every non-health route behind a valid key and attach the
+// caller's org (+ optional agent) so reads can be isolated per company.
 export async function authHook(req: FastifyRequest, reply: FastifyReply): Promise<void> {
   const path = req.url.split("?")[0] ?? req.url;
   if (path.startsWith("/health")) return;
 
-  if (!authEnabled()) {
-    req.ownerScope = process.env.REWIND_DEV_OWNER ?? "demo";
-    return;
-  }
+  if (!authEnabled()) return; // dev: unscoped
 
-  const key = req.headers["x-api-key"] as string | undefined;
-  const owner = ownerForKey(key);
-  if (!owner) {
+  const principal = principalForKey(req.headers["x-api-key"] as string | undefined);
+  if (!principal) {
     reply.code(401);
     await reply.send({ error: "unauthorized", message: "missing or invalid x-api-key" });
     return;
   }
-  req.ownerScope = owner;
+  req.orgScope = principal.org;
+  req.agentScope = principal.agent;
 }
 
 declare module "fastify" {
   interface FastifyRequest {
-    ownerScope?: string;
+    orgScope?: string;
+    agentScope?: string;
   }
 }

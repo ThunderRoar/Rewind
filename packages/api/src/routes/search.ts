@@ -36,6 +36,11 @@ export async function searchRoutes(app: FastifyInstance): Promise<void> {
     if (excludeSynthetic) {
       where.push(`r.label IS DISTINCT FROM 'synthetic-backfill'`);
     }
+    // Company isolation + optional member (sub-agent) scope.
+    params.push(req.orgScope ?? null);
+    where.push(`($${params.length}::STRING IS NULL OR a.owner = $${params.length})`);
+    params.push(req.agentScope ?? null);
+    where.push(`($${params.length}::STRING IS NULL OR a.slug = $${params.length})`);
     params.push(limit);
     const limitParam = `$${params.length}`;
     // Over-fetch nearest neighbours so post-filters still fill the result page.
@@ -55,8 +60,9 @@ export async function searchRoutes(app: FastifyInstance): Promise<void> {
       FROM nn
       JOIN events e ON e.id = nn.event_id
       JOIN event_embeddings ee ON ee.event_id = nn.event_id
-      ${excludeSynthetic ? "JOIN runs r ON r.id = e.run_id" : ""}
-      ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+      JOIN runs r ON r.id = e.run_id
+      JOIN agents a ON a.id = r.agent_id
+      WHERE ${where.join(" AND ")}
       ORDER BY nn.distance
       LIMIT ${limitParam}`;
 
