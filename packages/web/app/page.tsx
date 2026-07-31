@@ -1,102 +1,158 @@
 import Link from "next/link";
-import { getAudit, getRuns, getStats } from "@/lib/api";
-import { SearchBar } from "./SearchBar";
+import { ProductMock } from "./ProductMock";
+import { RewindDemo } from "./RewindDemo";
 
-export const dynamic = "force-dynamic";
+export const metadata = {
+  title: "Rewind — time-travel debugging for AI agents",
+};
 
-function StatTile({ label, value }: { label: string; value: string | number }) {
+function Feature({ color, title, body, path }: { color: string; title: string; body: string; path: string }) {
   return (
-    <div
-      style={{
-        flex: 1,
-        padding: "10px 14px",
-        borderRadius: 8,
-        background: "#141925",
-        border: "1px solid #232a3a",
-      }}
-    >
-      <div style={{ color: "#8b93a7", fontSize: 12 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 700 }}>{value}</div>
+    <div className="feature">
+      <div className="ic">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
+          <path d={path} stroke={color} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+      <h3>{title}</h3>
+      <p>{body}</p>
     </div>
   );
 }
 
-export default async function Home() {
-  const [{ runs }, stats, { entries }] = await Promise.all([getRuns(), getStats(), getAudit()]);
-
+export default function Landing() {
   return (
-    <main style={{ padding: 24, maxWidth: 1000, margin: "0 auto" }}>
-      <h1 style={{ marginBottom: 4 }}>Rewind</h1>
-      <p style={{ color: "#8b93a7", marginTop: 0 }}>
-        Time-travel debugging for AI agents - pick a run to scrub its timeline.
-      </p>
-
-      {/* Observability: system stats */}
-      <div style={{ display: "flex", gap: 12, margin: "16px 0" }}>
-        <StatTile label="runs" value={stats.runs.toLocaleString()} />
-        <StatTile label="events indexed" value={stats.events.toLocaleString()} />
-        <StatTile label="forks" value={stats.forks} />
-        <StatTile label="replays" value={stats.replays} />
-        <StatTile label="total replay cost" value={`$${stats.total_cost.toFixed(4)}`} />
-      </div>
-
-      <SearchBar />
-
-      <ul style={{ listStyle: "none", padding: 0, marginTop: 24 }}>
-        {runs.map((r) => (
-          <li
-            key={r.id}
-            style={{
-              padding: "12px 16px",
-              marginBottom: 8,
-              borderRadius: 8,
-              background: "#141925",
-              border: "1px solid #232a3a",
-            }}
-          >
-            <Link href={`/runs/${r.id}`} style={{ color: "#7aa2f7", fontWeight: 600 }}>
-              {r.label ?? r.id}
-            </Link>
-            <span style={{ color: "#8b93a7", marginLeft: 10, fontSize: 14 }}>
-              {r.agent_slug} · {r.event_count} events · {r.status} ·{" "}
-              <code style={{ color: "#5c6370" }}>{r.id.slice(0, 8)}</code> ·{" "}
-              {new Date(r.created_at).toLocaleString()}
-            </span>
-          </li>
-        ))}
-      </ul>
-
-      {/* Observability: audit log */}
-      {entries.length > 0 && (
-        <div style={{ marginTop: 32 }}>
-          <div style={{ color: "#8b93a7", fontSize: 12, marginBottom: 8 }}>
-            AUDIT LOG (who did what)
-          </div>
-          <div style={{ border: "1px solid #232a3a", borderRadius: 8, overflow: "hidden" }}>
-            {entries.slice(0, 10).map((e, i) => (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  gap: 12,
-                  padding: "6px 12px",
-                  fontSize: 13,
-                  fontFamily: "monospace",
-                  borderTop: i === 0 ? "none" : "1px solid #1b2230",
-                  color: "#c8d3f5",
-                }}
-              >
-                <span style={{ color: "#5c6370", width: 150 }}>
-                  {new Date(e.ts).toLocaleString()}
-                </span>
-                <span style={{ color: "#e0af68", width: 70 }}>{e.action}</span>
-                <span style={{ color: "#7aa2f7", width: 90 }}>{e.owner}</span>
-                <span style={{ color: "#6b7280" }}>{e.target.slice(0, 8)}</span>
-              </div>
-            ))}
-          </div>
+    <main className="container wide">
+      <section className="hero">
+        <div className="eyebrow" style={{ marginBottom: 18 }}>CockroachDB × AWS · agentic memory</div>
+        <h1>
+          Rewind any decision <span className="accent-word">your agent</span> ever made.
+        </h1>
+        <p>
+          Every tool call, memory read, and LLM response an agent makes is a durable, forkable row.
+          Scrub the timeline, fork a moment, edit the memory it had, and replay — with proof the edit
+          (not model noise) changed the outcome.
+        </p>
+        <div className="cta-row">
+          <Link href="/timelines" className="btn btn-primary btn-lg">
+            Explore the timelines →
+          </Link>
+          <Link href="/about" className="btn btn-lg">
+            How it works
+          </Link>
         </div>
-      )}
+        <div className="hero-visual">
+          <ProductMock />
+        </div>
+      </section>
+
+      <RewindDemo />
+
+      <section className="story">
+        <div>
+          <h2>An agent&apos;s memory got poisoned. It paid out the wrong customer.</h2>
+          <p>
+            A refund agent reads a &ldquo;verified&rdquo; ownership record that was quietly
+            corrupted. Its checks pass on the poisoned fact, and it refunds{" "}
+            <span className="num">$4,200</span> to the wrong person. The logs show <em>what</em>{" "}
+            happened — not what it <em>would have</em> done if the memory were clean.
+          </p>
+          <p>
+            Rewind is the black-box recorder and the fix-and-verify loop: rewind to the poisoned
+            write, correct it, and replay both the original and a control to prove the fix — not luck
+            — is what changed the outcome.
+          </p>
+        </div>
+        <div className="card inset" style={{ padding: 20 }}>
+          <div className="eyebrow" style={{ marginBottom: 12 }}>What the fork edits</div>
+          <div className="rec">
+            <div className="rec-head">
+              <span className="dot" style={{ background: "var(--k-memory_write)" }} />
+              memory_write · <span style={{ color: "var(--text)" }}>order:A-9:owner</span>
+            </div>
+            <div className="rec-line rec-del">
+              <span className="mark">-</span>
+              <span>owner: customer 1002 (Jane) — poisoned</span>
+            </div>
+            <div className="rec-line rec-add">
+              <span className="mark">+</span>
+              <span>owner: customer 1001 (John) — verified</span>
+            </div>
+          </div>
+          <p style={{ color: "var(--dim)", fontSize: 13, margin: "12px 0 0" }}>
+            One row. Rewind restores the true owner, replays, and the agent refuses the wrong refund.
+          </p>
+        </div>
+      </section>
+
+      <section className="features">
+        <div className="eyebrow">What&apos;s inside</div>
+        <h2 style={{ fontSize: 26, letterSpacing: "-0.02em", marginTop: 6 }}>
+          A production memory layer you can branch
+        </h2>
+        <div className="feature-grid">
+          <Feature
+            color="var(--lane-0)"
+            title="Branchable timeline"
+            body="Append-only, content-addressed events in CockroachDB. Forks share unchanged rows — real git semantics for cognition."
+            path="M5 4v8a3 3 0 003 3h4m3-11a2 2 0 100-4 2 2 0 000 4zM5 4a2 2 0 100-.01M5 15a2 2 0 100 .01"
+          />
+          <Feature
+            color="var(--lane-2)"
+            title="Attributable replay"
+            body="Every fork runs a control + edited replay at temperature 0. If the control reproduces the original, the diff is provably caused by your edit."
+            path="M4 10a6 6 0 016-6m0 0V1m0 3l2 2M16 10a6 6 0 01-6 6m0 0v3m0-3l-2-2"
+          />
+          <Feature
+            color="var(--lane-1)"
+            title="Semantic search"
+            body="A distributed vector index over millions of events. Ask “every time it tried to refund over $500” and jump straight there."
+            path="M9 9m-5 0a5 5 0 1010 0 5 5 0 10-10 0M13 13l4 4"
+          />
+          <Feature
+            color="var(--k-memory_write)"
+            title="Memory-poisoning forensics"
+            body="Detect similar past failures mid-run. A live agent recalls its own incidents and self-corrects before it misfires."
+            path="M10 2l7 4v5c0 4-3 6.5-7 7-4-.5-7-3-7-7V6l7-4z"
+          />
+          <Feature
+            color="var(--warn)"
+            title="Cost & audit built in"
+            body="Every replay is priced; every fork, edit, and search is written to an owner-scoped audit log. Observability from day one."
+            path="M3 3v14h14M7 13l3-4 3 2 3-5"
+          />
+          <Feature
+            color="var(--lane-5)"
+            title="MCP for any agent"
+            body="Rewind exposes itself over MCP. Claude Code or Cursor can ask “what did I try last time?” and get its own history back."
+            path="M4 12l4-6 3 4 2-3 3 5"
+          />
+        </div>
+      </section>
+
+      <section style={{ padding: "20px 0 48px" }}>
+        <div className="card" style={{ padding: 28, display: "flex", flexWrap: "wrap", gap: 20, alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <h2 style={{ fontSize: 22 }}>See it on a real poisoned run.</h2>
+            <p style={{ color: "var(--dim)", margin: "6px 0 0" }}>
+              Open the timelines, scrub to the poisoned write, and fork it.
+            </p>
+          </div>
+          <Link href="/timelines" className="btn btn-primary btn-lg">
+            Explore the timelines →
+          </Link>
+        </div>
+      </section>
+
+      <footer className="site-footer">
+        <span>Rewind</span>
+        <span style={{ color: "var(--faint)" }}>·</span>
+        <span>Apache-2.0</span>
+        <span style={{ color: "var(--faint)" }}>·</span>
+        <Link href="/about">How it works</Link>
+        <span style={{ color: "var(--faint)" }}>·</span>
+        <Link href="/mcp">MCP setup</Link>
+      </footer>
     </main>
   );
 }
