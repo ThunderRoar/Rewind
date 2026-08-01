@@ -35,6 +35,20 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
     }
     const { runId, events } = parsed.data;
 
+    // Company isolation for writes: a scoped key may only ingest into its own
+    // org's runs (and its own sub-agent, if it's a member key).
+    if (req.orgScope) {
+      const { rows } = await getPool().query<{ owner: string; slug: string }>(
+        `SELECT a.owner, a.slug FROM runs r JOIN agents a ON a.id = r.agent_id WHERE r.id = $1`,
+        [runId]
+      );
+      const run = rows[0];
+      if (!run || run.owner !== req.orgScope || (req.agentScope && run.slug !== req.agentScope)) {
+        reply.code(403);
+        return { error: "forbidden", message: "run is not in your scope" };
+      }
+    }
+
     const client = await getPool().connect();
     try {
       await client.query("BEGIN");

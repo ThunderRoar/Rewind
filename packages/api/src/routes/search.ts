@@ -101,12 +101,14 @@ export async function searchRoutes(app: FastifyInstance): Promise<void> {
          FROM event_embeddings ee
          JOIN events e ON e.id = ee.event_id
          JOIN runs r ON r.id = e.run_id
-         WHERE e.run_id IN (SELECT original_run FROM forks)
+         WHERE e.run_id IN (
+           SELECT original_run FROM forks WHERE ($2::STRING IS NULL OR created_by = $2)
+         )
          ORDER BY e.run_id, ee.embedding <=> $1::VECTOR
        ) sub
        ORDER BY distance
-       LIMIT $2`,
-      [literal, limit]
+       LIMIT $3`,
+      [literal, req.orgScope ?? null, limit]
     );
     return { context, failures: rows };
   });
