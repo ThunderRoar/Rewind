@@ -10,7 +10,7 @@
     "dev": "tsx watch src/server.ts",
     "embed": "tsx src/embed/run.ts",
     "build": "tsc -p tsconfig.json",
-    "build:lambda": "node scripts/build-lambda.mjs",
+    "build:lambda": "pnpm --filter @rewind/sdk-node build && node scripts/build-lambda.mjs",
     "start": "node dist/server.js",
     "test": "tsx --test \"test/*.test.ts\"",
     "typecheck": "tsc -p tsconfig.json --noEmit"

@@ -1,50 +1,12 @@
 import Link from "next/link";
 import { getRun, type RewindEvent } from "@/lib/api";
+import { DiffTable, sig } from "./DiffTable";
 
 export const dynamic = "force-dynamic";
-
-const KNOWN = new Set([
-  "llm_call",
-  "tool_call",
-  "tool_result",
-  "memory_read",
-  "memory_write",
-  "observation",
-  "ccloud_action",
-]);
-const kindColor = (kind: string) => (KNOWN.has(kind) ? `var(--k-${kind})` : "var(--faint)");
 
 function issuedRefund(events: RewindEvent[]): boolean {
   return events.some(
     (e) => e.kind === "tool_call" && (e.payload as { tool?: string }).tool === "issue_refund"
-  );
-}
-
-function preview(payload: unknown): string {
-  const s = JSON.stringify(payload);
-  return s.length > 90 ? s.slice(0, 90) + "…" : s;
-}
-
-// Content signature for divergence so identical decisions don't falsely read as divergent.
-function sig(e: RewindEvent | undefined): string {
-  if (!e) return "∅";
-  const p = { ...(e.payload as Record<string, unknown>) };
-  delete p.latencyMs;
-  return `${e.kind}|${JSON.stringify(p)}`;
-}
-
-function Cell({ e }: { e: RewindEvent | undefined }) {
-  if (!e) return <div className="diff-cell" style={{ color: "var(--faint)" }}>—</div>;
-  return (
-    <div className="diff-cell">
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
-        <span className="dot" style={{ background: kindColor(e.kind) }} />
-        <span className="kind" style={{ color: kindColor(e.kind) }}>
-          {e.kind}
-        </span>
-      </span>
-      <div className="prev">{preview(e.payload)}</div>
-    </div>
   );
 }
 
@@ -174,32 +136,16 @@ export default async function ComparePage({
       )}
 
       <p className="hint">
-        Rows where the two branches differ are highlighted; identical rows share the same
-        content hash.
+        Rows where the two branches differ are highlighted; identical rows share the same content
+        hash. Click any row to expand the full payload on both sides.
       </p>
 
-      <div className="diff">
-        <div className="diff-head">
-          <span>seq</span>
-          <span>original</span>
-          <span>edited</span>
-        </div>
-        {Array.from({ length: maxLen }, (_, i) => {
-          const l = left.events[i];
-          const r = right.events[i];
-          const diverged = sig(l) !== sig(r);
-          return (
-            <div key={i} className={`diff-row${diverged ? " diverged" : ""}`}>
-              <span className="gutter">
-                #{l?.seq ?? r?.seq ?? i}
-                {diverged && <span className="badge badge-diff">diff</span>}
-              </span>
-              <Cell e={l} />
-              <Cell e={r} />
-            </div>
-          );
-        })}
-      </div>
+      <DiffTable
+        left={left.events}
+        right={right.events}
+        leftRunId={left.run.id}
+        rightRunId={right.run.id}
+      />
     </main>
   );
 }
