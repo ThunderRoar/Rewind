@@ -73,11 +73,26 @@ export default async function ComparePage({
   const { control, cost } = await searchParams;
   const costUsd = cost ? Number(cost) : null;
 
-  const [left, right, ctrl] = await Promise.all([
-    getRun(a),
-    getRun(b),
-    control ? getRun(control) : Promise.resolve(null),
-  ]);
+  let left, right, ctrl;
+  try {
+    [left, right, ctrl] = await Promise.all([
+      getRun(a),
+      getRun(b),
+      control ? getRun(control) : Promise.resolve(null),
+    ]);
+  } catch (e) {
+    return (
+      <main className="container wide">
+        <div className="crumb">
+          <Link href="/timelines">Timelines</Link>
+        </div>
+        <div className="banner banner-warn">
+          <span className="rail" />
+          <div>Couldn&apos;t load one of the runs to compare (<code>{e instanceof Error ? e.message : String(e)}</code>).</div>
+        </div>
+      </main>
+    );
+  }
 
   const origRefund = issuedRefund(left.events);
   const editRefund = issuedRefund(right.events);

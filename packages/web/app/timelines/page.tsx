@@ -86,7 +86,18 @@ function Gutter({
 }
 
 export default async function Timelines() {
-  const [{ runs }, stats, { entries }] = await Promise.all([getRuns(), getStats(), getAudit()]);
+  let runs: RunSummary[] = [];
+  let entries: Awaited<ReturnType<typeof getAudit>>["entries"] = [];
+  let stats = { runs: 0, events: 0, index_size: 0, forks: 0, replays: 0, total_cost: 0 };
+  let apiError: string | null = null;
+  try {
+    const [r, s, a] = await Promise.all([getRuns(), getStats(), getAudit()]);
+    runs = r.runs;
+    stats = s;
+    entries = a.entries;
+  } catch (e) {
+    apiError = e instanceof Error ? e.message : String(e);
+  }
   const ordered = lineages(runs);
 
   return (
@@ -96,6 +107,16 @@ export default async function Timelines() {
         <span style={{ color: "var(--faint)" }}>/</span>
         <span>Timelines</span>
       </div>
+      {apiError && (
+        <div className="banner banner-warn" style={{ marginTop: 12 }}>
+          <span className="rail" />
+          <div>
+            Couldn&apos;t reach the API (<code>{apiError}</code>). Check{" "}
+            <code>NEXT_PUBLIC_API_URL</code>
+            {" "}and <code>NEXT_PUBLIC_REWIND_API_KEY</code> on Vercel.
+          </div>
+        </div>
+      )}
       <h1>Every agent decision, forkable</h1>
       <p className="lede">
         Each run is a branch of agent cognition. Scrub any timeline, fork a decision, edit the
@@ -104,13 +125,17 @@ export default async function Timelines() {
 
       <div className="stat-grid">
         <Stat label="runs" value={Number(stats.runs).toLocaleString()} />
-        <Stat label="events indexed" value={Number(stats.events).toLocaleString()} />
+        <Stat label="events" value={Number(stats.events).toLocaleString()} />
         <Stat label="forks" value={stats.forks} />
         <Stat label="replays" value={stats.replays} />
         <Stat label="replay cost" value={`$${Number(stats.total_cost).toFixed(4)}`} accent />
       </div>
 
       <SearchBar />
+      <div style={{ color: "var(--faint)", fontSize: 12.5, marginTop: 6 }}>
+        Distributed vector index · {Number(stats.index_size).toLocaleString()} events cluster-wide ·
+        semantic search across every decision
+      </div>
 
       <div className="section-title">
         <h2>Branches</h2>

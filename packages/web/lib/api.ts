@@ -103,6 +103,7 @@ export async function replayFork(runId: string, editedValue: string): Promise<Re
 export interface Stats {
   runs: number;
   events: number;
+  index_size: number;
   forks: number;
   replays: number;
   total_cost: number;

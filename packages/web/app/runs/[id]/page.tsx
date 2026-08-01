@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { getRun } from "@/lib/api";
 import { Timeline } from "./Timeline";
 
@@ -13,7 +14,25 @@ export default async function RunPage({
 }) {
   const { id } = await params;
   const { seq } = await searchParams;
-  const { run, events } = await getRun(id);
+
+  let run, events;
+  try {
+    ({ run, events } = await getRun(id));
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (/\b404\b/.test(msg)) notFound();
+    return (
+      <main className="container wide">
+        <div className="crumb">
+          <Link href="/timelines">Timelines</Link>
+        </div>
+        <div className="banner banner-warn">
+          <span className="rail" />
+          <div>Couldn&apos;t load this run (<code>{msg}</code>).</div>
+        </div>
+      </main>
+    );
+  }
   const initialSeq = seq != null ? Number(seq) : undefined;
 
   return (
