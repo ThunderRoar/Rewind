@@ -29,7 +29,7 @@ export default function About() {
         <p>
           The timeline reconstructs the agent&apos;s state at any point — which memories existed, what
           it had seen. Every event is embedded into a distributed vector index, so you can
-          semantically search across millions of events (&ldquo;every time it tried to refund over
+          semantically search across hundreds of thousands of events (&ldquo;every time it tried to refund over
           $500&rdquo;) and jump straight to the moment.
         </p>
 

@@ -130,7 +130,7 @@ export function ProductMock() {
               </div>
             ))}
             <div style={{ color: "var(--faint)", fontSize: 12, marginTop: 6 }}>
-              distributed vector index · 63,448 events · 16 ms
+              distributed vector index · 895,448 events · ~58 ms
             </div>
           </div>
         )}

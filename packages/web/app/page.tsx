@@ -106,7 +106,7 @@ export default function Landing() {
           <Feature
             color="var(--lane-1)"
             title="Semantic search"
-            body="A distributed vector index over millions of events. Ask “every time it tried to refund over $500” and jump straight there."
+            body="A distributed vector index over nearly a million events. Ask “every time it tried to refund over $500” and jump straight there."
             path="M9 9m-5 0a5 5 0 1010 0 5 5 0 10-10 0M13 13l4 4"
           />
           <Feature
