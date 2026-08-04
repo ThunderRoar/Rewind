@@ -25,9 +25,19 @@ export async function replayRoutes(app: FastifyInstance): Promise<void> {
         owner,
       });
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      // not-replayable is an expected boundary, not a server fault → 422, not 500
+      if (/no memory_write for/.test(message)) {
+        reply.code(422);
+        return {
+          error: "not_replayable",
+          message:
+            "This run is recorded and searchable, but replay is only available for instrumented agents whose loop Rewind ships (the refund agent). Its program can't be re-executed from events alone.",
+        };
+      }
       req.log.error({ err }, "POST /replay failed");
       reply.code(500);
-      return { error: "replay_failed", message: err instanceof Error ? err.message : String(err) };
+      return { error: "replay_failed", message };
     }
   });
 }

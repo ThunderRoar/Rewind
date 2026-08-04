@@ -38,6 +38,7 @@ export interface RunDetail {
     created_at: string;
     parent_run: string | null;
     forked_from: string | null;
+    replayable: boolean;
   };
   events: RewindEvent[];
 }

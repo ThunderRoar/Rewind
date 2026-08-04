@@ -1,3 +1,4 @@
+import { MEMORY_KEY } from "@rewind/example-refund-agent";
 import type { FastifyInstance } from "fastify";
 import { getPool } from "../db.js";
 
@@ -36,12 +37,18 @@ export async function readRoutes(app: FastifyInstance): Promise<void> {
 
       const runRes = await pool.query(
         `SELECT r.id, r.label, r.status, r.region, r.created_at, r.parent_run, r.forked_from,
-                a.slug AS agent_slug
+                a.slug AS agent_slug,
+                -- replayable only if it carries the memory the shipped agent loop keys off
+                EXISTS (
+                  SELECT 1 FROM events e
+                  WHERE e.run_id = r.id AND e.kind = 'memory_write'
+                    AND e.payload->>'key' = $4
+                ) AS replayable
          FROM runs r JOIN agents a ON a.id = r.agent_id
          WHERE r.id = $1
            AND ($2::STRING IS NULL OR a.owner = $2)
            AND ($3::STRING IS NULL OR a.slug = $3)`,
-        [id, req.orgScope ?? null, req.agentScope ?? null]
+        [id, req.orgScope ?? null, req.agentScope ?? null, MEMORY_KEY]
       );
       const run = runRes.rows[0];
       if (!run) {

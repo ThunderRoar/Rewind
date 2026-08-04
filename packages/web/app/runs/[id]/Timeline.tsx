@@ -24,10 +24,12 @@ export function Timeline({
   events,
   initialSeq,
   runId,
+  replayable,
 }: {
   events: RewindEvent[];
   initialSeq?: number;
   runId: string;
+  replayable: boolean;
 }) {
   const initialIdx =
     initialSeq != null
@@ -157,6 +159,7 @@ export function Timeline({
                 <ForkPanel
                   runId={runId}
                   memoryValue={String((selected.payload as { value?: unknown }).value ?? "")}
+                  replayable={replayable}
                 />
               )}
             </>

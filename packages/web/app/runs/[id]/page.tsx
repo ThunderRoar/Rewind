@@ -59,7 +59,7 @@ export default async function RunPage({
           </>
         )}
       </p>
-      <Timeline events={events} initialSeq={initialSeq} runId={run.id} />
+      <Timeline events={events} initialSeq={initialSeq} runId={run.id} replayable={run.replayable} />
     </main>
   );
 }
