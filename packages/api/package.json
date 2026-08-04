@@ -12,6 +12,7 @@
     "build": "tsc -p tsconfig.json",
     "build:lambda": "pnpm --filter @rewind/sdk-node build && node scripts/build-lambda.mjs",
     "start": "node dist/server.js",
+    "ccloud:showcase": "node scripts/ccloud-showcase.mjs",
     "test": "tsx --test \"test/*.test.ts\"",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
