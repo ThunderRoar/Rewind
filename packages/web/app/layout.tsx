@@ -9,7 +9,7 @@ export const metadata = {
 };
 
 // Set the saved theme before first paint to avoid a flash of the default.
-const themeBootstrap = `(function(){try{var t=localStorage.getItem('rewind-theme')||'midnight';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
+const themeBootstrap = `(function(){try{var t=localStorage.getItem('rewind-theme')||'sand';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
 
 function BranchMark() {
   return (
@@ -38,7 +38,7 @@ function BranchMark() {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" data-theme="midnight" suppressHydrationWarning>
+    <html lang="en" data-theme="sand" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>

@@ -17,7 +17,7 @@ export function Menu() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setTheme((localStorage.getItem("rewind-theme") as ThemeId) ?? "midnight");
+    setTheme((localStorage.getItem("rewind-theme") as ThemeId) ?? "sand");
   }, []);
 
   useEffect(() => {
