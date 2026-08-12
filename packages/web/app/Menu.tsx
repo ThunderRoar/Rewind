@@ -13,7 +13,7 @@ type ThemeId = (typeof THEMES)[number]["id"];
 
 export function Menu() {
   const [open, setOpen] = useState(false);
-  const [theme, setTheme] = useState<ThemeId>("midnight");
+  const [theme, setTheme] = useState<ThemeId>("sand");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

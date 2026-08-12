@@ -218,7 +218,7 @@ code,
   --radius-sm: 6px;
 }
 
-/* ── Layout ─────────────────────────────────────────── */
+/* Layout */
 .container {
   max-width: 1120px;
   margin: 0 auto;
@@ -239,7 +239,7 @@ code,
 .site-header .inner {
   max-width: 1320px;
   margin: 0 auto;
-  padding: 11px 24px;
+  padding: 17px 24px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -247,9 +247,9 @@ code,
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 11px;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 19px;
   letter-spacing: -0.02em;
   color: var(--text);
 }
@@ -262,10 +262,10 @@ code,
 .brand .tag {
   color: var(--faint);
   font-weight: 450;
-  font-size: 12.5px;
+  font-size: 14px;
   border-left: 1px solid var(--border-hi);
-  padding-left: 13px;
-  margin-left: 4px;
+  padding-left: 14px;
+  margin-left: 5px;
 }
 .spacer {
   flex: 1;
@@ -308,7 +308,7 @@ code,
   margin: 0 7px;
 }
 
-/* ── Theme switch ───────────────────────────────────── */
+/* Theme switch */
 .theme-switch {
   display: inline-flex;
   padding: 3px;
@@ -344,7 +344,7 @@ code,
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
 }
 
-/* ── Cards / rows ───────────────────────────────────── */
+/* Cards / rows */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -361,7 +361,7 @@ code,
   margin: 26px 0 10px;
 }
 
-/* ── Stats ──────────────────────────────────────────── */
+/* Stats */
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -396,7 +396,7 @@ code,
   }
 }
 
-/* ── Controls ───────────────────────────────────────── */
+/* Controls */
 .field {
   display: flex;
   gap: 8px;
@@ -432,6 +432,7 @@ code,
 }
 .btn:hover {
   border-color: var(--border-hi);
+  text-decoration: none;
 }
 .btn:active {
   transform: translateY(1px);
@@ -450,7 +451,7 @@ code,
   border-color: transparent;
 }
 
-/* ── Chips & badges ─────────────────────────────────── */
+/* Chips & badges */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -492,7 +493,7 @@ code,
   font-weight: 650;
 }
 
-/* ── Banners ────────────────────────────────────────── */
+/* Banners */
 .banner {
   padding: 13px 16px;
   border-radius: var(--radius);
@@ -520,7 +521,7 @@ code,
   color: var(--text);
 }
 
-/* ── Scrubber ───────────────────────────────────────── */
+/* Scrubber */
 .scrubber {
   width: 100%;
   appearance: none;
@@ -551,7 +552,7 @@ code,
   cursor: grab;
 }
 
-/* ── Branch graph (the motif) ───────────────────────── */
+/* Branch graph */
 .graph {
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -686,7 +687,7 @@ code,
   color: var(--accent);
 }
 
-/* ── Timeline split ─────────────────────────────────── */
+/* Timeline split */
 .tl-split {
   display: flex;
   gap: 16px;
@@ -749,7 +750,7 @@ code,
   gap: 7px;
 }
 
-/* ── Diff table ─────────────────────────────────────── */
+/* Diff table */
 .diff {
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -877,7 +878,7 @@ code,
   margin: 4px 0 8px;
 }
 
-/* ── Fork panel ─────────────────────────────────────── */
+/* Fork panel */
 .fork {
   margin-top: 16px;
   padding: 14px;
@@ -910,7 +911,7 @@ code,
   border-color: var(--accent);
 }
 
-/* ── Audit ──────────────────────────────────────────── */
+/* Audit */
 .audit {
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -943,7 +944,7 @@ code,
   color: var(--dim);
 }
 
-/* ── Hamburger menu ─────────────────────────────────── */
+/* Hamburger menu */
 .menu {
   position: relative;
 }
@@ -1007,7 +1008,7 @@ code,
   margin: 6px 4px;
 }
 
-/* ── Landing ────────────────────────────────────────── */
+/* Landing */
 .hero {
   padding: 68px 0 40px;
   border-bottom: 1px solid var(--border);
@@ -1055,7 +1056,7 @@ code,
   margin-top: 40px;
 }
 
-/* ── Product mock (hero) ────────────────────────────── */
+/* Product mock */
 .mock {
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -1371,7 +1372,7 @@ code,
   align-items: center;
 }
 
-/* ── Interactive rewind demo (signature) ───────────── */
+/* Interactive rewind demo */
 .demo {
   padding: 40px 0 8px;
 }
@@ -1513,7 +1514,7 @@ code,
   font-size: 12.5px;
 }
 
-/* ── Loading / 404 ──────────────────────────────────── */
+/* Loading / 404 */
 .loading-wrap {
   min-height: 58vh;
   display: grid;
@@ -1561,7 +1562,7 @@ code,
   justify-content: center;
 }
 
-/* ── Scrollbars ─────────────────────────────────────── */
+/* Scrollbars */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
