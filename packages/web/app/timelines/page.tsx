@@ -4,6 +4,8 @@ import { SearchBar } from "../SearchBar";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Rewind - Timelines" };
+
 function Stat({ label, value, accent }: { label: string; value: string | number; accent?: boolean }) {
   return (
     <div className={`stat${accent ? " accent" : ""}`}>

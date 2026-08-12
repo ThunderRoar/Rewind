@@ -3,7 +3,7 @@ import { ProductMock } from "./ProductMock";
 import { RewindDemo } from "./RewindDemo";
 
 export const metadata = {
-  title: "Rewind — time-travel debugging for AI agents",
+  title: "Rewind - Time travel debugging for AI agents",
 };
 
 function Feature({ color, title, body, path }: { color: string; title: string; body: string; path: string }) {
@@ -30,8 +30,8 @@ export default function Landing() {
         </h1>
         <p>
           Every tool call, memory read, and LLM response an agent makes is a durable, forkable row.
-          Scrub the timeline, fork a moment, edit the memory it had, and replay — with proof the edit
-          (not model noise) changed the outcome.
+          Scrub the timeline, fork a moment, edit the memory the agent had, and replay it. A control
+          run alongside proves the new outcome came from your edit, not the model&apos;s randomness.
         </p>
         <div className="cta-row">
           <Link href="/timelines" className="btn btn-primary btn-lg">

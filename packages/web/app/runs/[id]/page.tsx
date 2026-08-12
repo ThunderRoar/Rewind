@@ -5,6 +5,8 @@ import { Timeline } from "./Timeline";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Rewind - Timeline" };
+
 export default async function RunPage({
   params,
   searchParams,

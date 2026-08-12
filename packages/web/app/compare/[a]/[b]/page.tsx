@@ -4,6 +4,8 @@ import { DiffTable, sig } from "./DiffTable";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Rewind - Replay diff" };
+
 function issuedRefund(events: RewindEvent[]): boolean {
   return events.some(
     (e) => e.kind === "tool_call" && (e.payload as { tool?: string }).tool === "issue_refund"

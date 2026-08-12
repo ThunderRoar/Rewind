@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export const metadata = { title: "Rewind MCP server" };
+export const metadata = { title: "Rewind - MCP setup" };
 
 export default function Mcp() {
   return (

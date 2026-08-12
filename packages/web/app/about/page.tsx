@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export const metadata = { title: "How Rewind works" };
+export const metadata = { title: "Rewind - How Rewind works" };
 
 export default function About() {
   return (
