@@ -247,7 +247,8 @@ code,
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 11px;
+  gap: 9px;
+  line-height: 1;
   font-weight: 700;
   font-size: 19px;
   letter-spacing: -0.02em;
@@ -258,6 +259,7 @@ code,
 }
 .brand svg {
   display: block;
+  transform: translateY(2px);
 }
 .brand .tag {
   color: var(--faint);

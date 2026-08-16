@@ -56,14 +56,18 @@ export async function searchRoutes(app: FastifyInstance): Promise<void> {
         ORDER BY embedding <=> $1::VECTOR
         LIMIT ${pool}
       )
-      SELECT e.id, e.run_id, e.seq, e.kind, e.ts, ee.summary, nn.distance
-      FROM nn
-      JOIN events e ON e.id = nn.event_id
-      JOIN event_embeddings ee ON ee.event_id = nn.event_id
-      JOIN runs r ON r.id = e.run_id
-      JOIN agents a ON a.id = r.agent_id
-      WHERE ${where.join(" AND ")}
-      ORDER BY nn.distance
+      SELECT * FROM (
+        SELECT DISTINCT ON (ee.summary)
+               e.id, e.run_id, e.seq, e.kind, e.ts, ee.summary, nn.distance
+        FROM nn
+        JOIN events e ON e.id = nn.event_id
+        JOIN event_embeddings ee ON ee.event_id = nn.event_id
+        JOIN runs r ON r.id = e.run_id
+        JOIN agents a ON a.id = r.agent_id
+        WHERE ${where.join(" AND ")}
+        ORDER BY ee.summary, nn.distance
+      ) sub
+      ORDER BY distance
       LIMIT ${limitParam}`;
 
     const { rows } = await getPool().query(sql, params);

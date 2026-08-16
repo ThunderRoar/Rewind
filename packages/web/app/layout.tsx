@@ -13,7 +13,7 @@ const themeBootstrap = `(function(){try{var t=localStorage.getItem('rewind-theme
 
 function BranchMark() {
   return (
-    <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden>
+    <svg width="26" height="26" viewBox="2.7 4 24 24" fill="none" aria-hidden>
       <path
         d="M22.5 8.5 L15 16 L22.5 23.5"
         stroke="#6ea8fe"
