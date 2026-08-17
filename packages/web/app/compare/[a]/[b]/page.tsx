@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getRun, type RewindEvent } from "@/lib/api";
-import { DiffTable, sig } from "./DiffTable";
+import { DiffTable } from "./DiffTable";
+import { sig } from "./sig";
 
 export const dynamic = "force-dynamic";
 

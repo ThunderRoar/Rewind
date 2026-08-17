@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { RewindEvent } from "@/lib/api";
+import { sig } from "./sig";
 
 const KNOWN = new Set([
   "llm_call",
@@ -18,14 +19,6 @@ const kindColor = (kind: string) => (KNOWN.has(kind) ? `var(--k-${kind})` : "var
 function preview(payload: unknown): string {
   const s = JSON.stringify(payload);
   return s.length > 90 ? s.slice(0, 90) + "…" : s;
-}
-
-// Content signature for divergence so identical decisions don't falsely read as divergent.
-export function sig(e: RewindEvent | undefined): string {
-  if (!e) return "∅";
-  const p = { ...(e.payload as Record<string, unknown>) };
-  delete p.latencyMs;
-  return `${e.kind}|${JSON.stringify(p)}`;
 }
 
 function Cell({ e, open, runId }: { e: RewindEvent | undefined; open: boolean; runId: string }) {
