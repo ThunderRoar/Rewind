@@ -103,7 +103,7 @@ We use three of the four eligible tools (the minimum is two).
 
 **Distributed Vector Indexing.** Each event's embedding lives in `event_embeddings` as
 `VECTOR(512)`, with a `CREATE VECTOR INDEX ... vector_cosine_ops` index. `/search` embeds the query
-and runs a cosine top-k against it. The index currently holds **895,448 embeddings** across 901,244
+and runs a cosine top-k against it. The index currently holds **895,416 embeddings** across 901,216
 events, and a warm search comes back in about **58 ms** round-trip (EXPLAIN ANALYZE puts the engine
 time near 39 ms). We checked the plan to be sure it uses the index rather than scanning. Building
 an index that size on a Basic cluster isn't free; the bulk-load approach (drop the index, load,

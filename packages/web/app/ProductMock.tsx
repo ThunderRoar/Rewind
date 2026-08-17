@@ -11,7 +11,7 @@ function Dot({ kind }: { kind: string }) {
   return <span className="dot" style={{ background: k(kind) }} />;
 }
 
-export function ProductMock() {
+export function ProductMock({ indexSize }: { indexSize?: number }) {
   const [tab, setTab] = useState<Tab>("Replay diff");
 
   return (
@@ -130,7 +130,7 @@ export function ProductMock() {
               </div>
             ))}
             <div style={{ color: "var(--faint)", fontSize: 12, marginTop: 6 }}>
-              distributed vector index · 895,448 events · ~58 ms
+              distributed vector index · {(indexSize ?? 895416).toLocaleString()} events · ~58 ms
             </div>
           </div>
         )}

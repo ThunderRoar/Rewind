@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ProductMock } from "./ProductMock";
 import { RewindDemo } from "./RewindDemo";
+import { API_URL } from "@/lib/api";
 
 export const metadata = {
   title: "Rewind - Time travel debugging for AI agents",
@@ -20,7 +21,22 @@ function Feature({ color, title, body, path }: { color: string; title: string; b
   );
 }
 
-export default function Landing() {
+async function liveIndexSize(): Promise<number | undefined> {
+  try {
+    const key = process.env.NEXT_PUBLIC_REWIND_API_KEY;
+    const res = await fetch(`${API_URL}/stats`, {
+      headers: key ? { "x-api-key": key } : {},
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return undefined;
+    return ((await res.json()) as { index_size?: number }).index_size;
+  } catch {
+    return undefined;
+  }
+}
+
+export default async function Landing() {
+  const indexSize = await liveIndexSize();
   return (
     <main className="container wide">
       <section className="hero">
@@ -42,7 +58,7 @@ export default function Landing() {
           </Link>
         </div>
         <div className="hero-visual">
-          <ProductMock />
+          <ProductMock indexSize={indexSize} />
         </div>
       </section>
 
