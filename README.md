@@ -189,10 +189,20 @@ vector-search latency from `EXPLAIN ANALYZE`, and replay cost comes from real Be
 ### Access control
 
 Rewind is multi-tenant, with a hierarchy. `REWIND_API_KEYS` is a comma-separated list of
-`key:org[:agent]` entries. A `key:org` entry is a company admin that sees every sub-agent in that
-org; a `key:org:agent` entry is a member scoped to one sub-agent, and cross-org access is always
+`key:org[:agent][:role]` entries. A `key:org` entry is a company admin that sees every sub-agent in
+that org; a `key:org:agent` entry is a member scoped to one sub-agent, and cross-org access is always
 denied. Leave it empty for local dev (auth off, unscoped). Reads, writes, search, recall, and stats
 are all scoped the same way, and every fork/replay/edit is written to `audit_log`.
+
+The third role, `demo` (`key:org::demo` — the empty slot means org-wide), exists because the web
+app's key is published whether you like it or not: Next.js inlines `NEXT_PUBLIC_*` into the browser
+bundle at build time. A demo key reads and replays but **cannot write events or create runs**, so a
+scraped key can't forge timeline history. Replays are real Bedrock spend, so demo callers also share
+rolling budgets (`REPLAY_DEMO_HOURLY_USD_CAP` / `REPLAY_DEMO_DAILY_USD_CAP`, default $0.25/hr and
+$2.00/day) enforced against actual recorded `replays.cost_usd` — two windows because at ~$0.0055 a
+replay an hourly-only cap still permits ~$24/day. Admin keys are uncapped, so an exhausted budget can
+never lock the operator out mid-demo. An unrecognised role drops the entry rather than defaulting to
+admin.
 
 
 ## Roadmap

@@ -3,7 +3,10 @@
     "rewind": {
       "command": "node",
       "args": ["./packages/mcp-server/dist/index.js"],
-      "env": { "REWIND_API_URL": "http://localhost:3000" }
+      "env": {
+        "REWIND_API_URL": "https://myrunutmjri2q4p4isla22kyku0hdtbi.lambda-url.us-east-1.on.aws",
+        "REWIND_API_KEY": "${REWIND_API_KEY}"
+      }
     }
   }
 }
