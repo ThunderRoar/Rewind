@@ -8,7 +8,7 @@ changed the outcome.
 
 Live app: **https://rewind-agents.vercel.app**
 
-Demo video: #TODO add demo later
+Demo video: **https://youtu.be/v07H7YFHK_I**
 
 ---
 
@@ -32,9 +32,10 @@ the wrong customer**. The agent wasn't broken; the data it trusted was.
    written to CockroachDB as append-only, content-addressed rows. Nothing is ever updated or
    deleted.
 
-2. **Search.** Every event is embedded (Amazon Titan v2, 512 dims) and indexed in CockroachDB's
-   distributed vector index. You can search "every time it tried to refund over $500" across every
-   run and jump straight to the moment.
+2. **Search.** Every event carries a 512-dim embedding indexed in CockroachDB's distributed vector
+   index (Amazon Titan v2 on demo runs — see [below](#cockroachdb-tools-used) for how the index
+   reaches ~900k rows). You can search "every time it tried to refund over $500" across every run
+   and jump straight to the moment.
 
 3. **Fork.** Right-click the poisoned `memory_write`, change the value (1002 → 1001), and submit.
    That creates a new run which shares events 0..N-1 with the parent and diverges from the fork
@@ -103,9 +104,12 @@ We use three of the four eligible tools (the minimum is two).
 
 **Distributed Vector Indexing.** Each event's embedding lives in `event_embeddings` as
 `VECTOR(512)`, with a `CREATE VECTOR INDEX ... vector_cosine_ops` index. `/search` embeds the query
-and runs a cosine top-k against it. The index currently holds **895,416 embeddings** across 901,216
-events, and a warm search comes back in about **58 ms** round-trip (EXPLAIN ANALYZE puts the engine
-time near 39 ms). We checked the plan to be sure it uses the index rather than scanning. Building
+and runs a cosine top-k against it. The index currently holds **895,416 embeddings** across ~901.5k
+events — demo runs carry real Titan vectors, and a synthetic unit-vector backfill takes the index to
+production scale without spending Bedrock tokens on ~900k rows. A warm search comes back in about
+**58 ms** round-trip (EXPLAIN ANALYZE puts the engine near 34 ms, on a `vector search` node over
+`event_embedding_idx` at ~207 RUs). We checked the plan to be sure it uses the index rather than
+scanning — the same query written as a naive join full-scans instead: 15.7 s and ~31,900 RUs. Building
 an index that size on a Basic cluster isn't free; the bulk-load approach (drop the index, load,
 rebuild once) is in [`packages/api/scripts/backfill.mjs`](packages/api/scripts/backfill.mjs). The
 search runs the vector top-k in a CTE first so the planner picks the index instead of scanning and
@@ -132,17 +136,19 @@ CockroachDB tools above.
 
 Four services (the minimum is one).
 
-**Amazon Bedrock.** Titan Text Embeddings V2 (`dimensions: 512`) embeds every event, Nova Lite
-writes the one-line summaries, and Claude Sonnet 5 drives the replays at `temperature = 0` (the
-model is set by env var, so Haiku 4.5 works as a cheaper option while iterating). Replay cost comes
-from actual token usage, and a single investigation runs about three cents.
+**Amazon Bedrock.** Titan Text Embeddings V2 (`dimensions: 512`) embeds demo-run events, Nova Lite
+writes the one-line summaries, and Claude Haiku 4.5 drives the replays at `temperature = 0` (the
+model is set by `BEDROCK_MODEL_DEMO`, so a larger model such as Sonnet 5 can be configured without a
+code change — Sonnet lists at roughly 2× Haiku's rates). Replay cost comes from actual recorded
+token usage: a single investigation, control branch plus edited branch, measures about **$0.008**.
 
 **AWS Lambda.** The Fastify API runs on Lambda through `@fastify/aws-lambda` behind a Function URL,
 and scales to zero. Replays happen inside the same request (20 to 40 seconds, well under the Lambda
 limit). A warm handler plus an EventBridge Scheduler ping keep cold starts off the demo path.
 
-**Amazon S3.** Payloads over 64 KB go to S3, since CockroachDB caps a message at 16 MiB. The row
-keeps a summary and an `s3_overflow` pointer.
+**Amazon S3.** Payloads over `OVERFLOW_BYTES` (64 KB by default) are written to S3, since
+CockroachDB caps a message at 16 MiB; the row keeps a summary and an `s3_overflow` pointer. No demo
+payload has crossed the threshold yet, so every current event is stored inline.
 
 **Amazon SNS.** Every fork/replay publishes an incident alert to an SNS topic (a no-op unless
 `SNS_TOPIC_ARN` is set), so an investigation shows up in an inbox.
