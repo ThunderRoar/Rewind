@@ -61,13 +61,29 @@ export interface ReplayResult {
   costUsd: number;
 }
 
+export class RunNotVisibleError extends Error {}
+
 export async function forkAndReplay(params: {
   originalRunId: string;
   editedValue: string;
   owner: string;
+  orgScope: string | null;
+  agentScope: string | null;
 }): Promise<ReplayResult> {
   ensureSdk();
   const pool = getPool();
+
+  const visible = await pool.query(
+    `SELECT 1 FROM runs r JOIN agents a ON a.id = r.agent_id
+     WHERE r.id = $1
+       AND ($2::STRING IS NULL OR a.owner = $2)
+       AND ($3::STRING IS NULL OR a.slug = $3)`,
+    [params.originalRunId, params.orgScope, params.agentScope]
+  );
+  
+  if (!visible.rowCount) {
+    throw new RunNotVisibleError(`run ${params.originalRunId} not found`);
+  }
 
   const ev = await pool.query<{ id: string; payload: { value: string } }>(
     `SELECT id, payload FROM events

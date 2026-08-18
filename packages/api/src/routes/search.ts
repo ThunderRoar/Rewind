@@ -4,7 +4,7 @@ import { embed } from "../bedrock.js";
 import { getPool } from "../db.js";
 
 const SearchBody = z.object({
-  query: z.string().min(1),
+  query: z.string().min(1).max(2000),
   limit: z.number().int().positive().max(100).optional(),
   runId: z.string().uuid().optional(),
   excludeSynthetic: z.boolean().optional(),
@@ -76,7 +76,8 @@ export async function searchRoutes(app: FastifyInstance): Promise<void> {
 
   app.post("/similar-failures", async (req, reply) => {
     const Body = z.object({
-      context: z.string().min(1),
+      // Longer than /search: callers pass a slab of agent context, not a phrase.
+      context: z.string().min(1).max(8000),
       limit: z.number().int().positive().max(50).optional(),
     });
     const parsed = Body.safeParse(req.body);

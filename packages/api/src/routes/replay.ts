@@ -1,12 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { forkAndReplay } from "../replay.js";
+import { forkAndReplay, RunNotVisibleError } from "../replay.js";
 import { getPool } from "../db.js";
 
 const ReplayBody = z.object({
   runId: z.string().uuid(),
-  editedValue: z.string().min(1),
-  owner: z.string().min(1).default("demo"),
+  editedValue: z.string().min(1).max(2000),
+  owner: z.string().min(1).max(200).default("demo"),
 });
 
 const DEMO_HOURLY_USD_CAP = Number(process.env.REPLAY_DEMO_HOURLY_USD_CAP ?? "0.25");
@@ -59,8 +59,16 @@ export async function replayRoutes(app: FastifyInstance): Promise<void> {
         originalRunId: parsed.data.runId,
         editedValue: parsed.data.editedValue,
         owner,
+        orgScope: req.orgScope ?? null,
+        agentScope: req.agentScope ?? null,
       });
     } catch (err) {
+      // 404 for both "missing" and "another tenant's" — same shape as GET /runs/:id,
+      // so a caller can't use the response to probe for foreign run ids.
+      if (err instanceof RunNotVisibleError) {
+        reply.code(404);
+        return { error: "run_not_found" };
+      }
       const message = err instanceof Error ? err.message : String(err);
       // not-replayable is an expected boundary, not a server fault → 422, not 500
       if (/no memory_write for/.test(message)) {
@@ -71,9 +79,11 @@ export async function replayRoutes(app: FastifyInstance): Promise<void> {
             "This run is recorded and searchable, but replay is only available for instrumented agents whose loop Rewind ships (the refund agent). Its program can't be re-executed from events alone.",
         };
       }
+      // Detail goes to the log, not to the caller — the demo key is public, and
+      // driver errors can carry schema and connection detail.
       req.log.error({ err }, "POST /replay failed");
       reply.code(500);
-      return { error: "replay_failed", message };
+      return { error: "replay_failed", message: "Replay failed. See server logs." };
     }
   });
 }

@@ -46,12 +46,10 @@ export async function runsRoutes(app: FastifyInstance): Promise<void> {
       return { runId, agentId };
     } catch (err) {
       await client.query("ROLLBACK");
+      // Driver errors can carry schema/connection detail — log it, don't return it.
       req.log.error({ err }, "POST /runs failed");
       reply.code(500);
-      return {
-        error: "internal",
-        message: err instanceof Error ? err.message : String(err),
-      };
+      return { error: "internal", message: "Could not create run. See server logs." };
     } finally {
       client.release();
     }

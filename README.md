@@ -204,6 +204,12 @@ replay an hourly-only cap still permits ~$24/day. Admin keys are uncapped, so an
 never lock the operator out mid-demo. An unrecognised role drops the entry rather than defaulting to
 admin.
 
+Isolation is enforced at every entry point, including `POST /replay` — a run belonging to another
+company (or, for a member key, another sub-agent) returns `404 run_not_found`, the same shape as a
+genuinely missing run so the response can't be used to probe for foreign run ids. Fields that reach
+Bedrock (`editedValue`, search `query`, `context`) are length-bounded, because the replay budget is
+checked before the call and an unbounded field could overshoot it in one request.
+
 
 ## Roadmap
 
