@@ -37,7 +37,8 @@ async function replayBranch(
   originalRunId: string,
   forkEventId: string,
   model: string
-): Promise<{ run: RewindRun; cost: number }> {
+): Promise<{ run: RewindRun; cost: number; startedAt: Date; endedAt: Date }> {
+  const startedAt = new Date();
   const run = await Rewind.startRun(label);
   await getPool().query(
     `UPDATE runs SET parent_run = $1, forked_from = $2 WHERE id = $3`,
@@ -45,8 +46,9 @@ async function replayBranch(
   );
   await runRefundAgent(run, { ownerRecord });
   await run.end();
+  const endedAt = new Date();
   const cost = await costOfRun(run.runId, model);
-  return { run, cost };
+  return { run, cost, startedAt, endedAt };
 }
 
 export interface ReplayResult {
@@ -99,10 +101,24 @@ export async function forkAndReplay(params: {
   const forkId = forkRes.rows[0]?.id;
   if (!forkId) throw new Error("fork insert returned no id");
 
+  // started_at/ended_at are what the spend cap in routes/replay.ts windows on,
+  // so they have to be real — a NULL here silently exempts the row from the cap.
   await pool.query(
-    `INSERT INTO replays (fork_id, model, kind, status, cost_usd)
-     VALUES ($1, $2, 'control', 'done', $3), ($1, $2, 'edited', 'done', $4)`,
-    [forkId, model, control.cost, edited.cost]
+    `INSERT INTO replays (fork_id, model, kind, status, cost_usd, started_at, ended_at, latency_ms)
+     VALUES ($1, $2, 'control', 'done', $3, $4, $5, $6),
+            ($1, $2, 'edited',  'done', $7, $8, $9, $10)`,
+    [
+      forkId,
+      model,
+      control.cost,
+      control.startedAt,
+      control.endedAt,
+      control.endedAt.getTime() - control.startedAt.getTime(),
+      edited.cost,
+      edited.startedAt,
+      edited.endedAt,
+      edited.endedAt.getTime() - edited.startedAt.getTime(),
+    ]
   );
   await pool.query(
     `INSERT INTO audit_log (owner, action, target, detail)

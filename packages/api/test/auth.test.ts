@@ -14,12 +14,35 @@ test("auth is ON when keys are configured", () => {
 
 test("an org-only key is a company admin (no agent scope)", () => {
   process.env.REWIND_API_KEYS = "admin-key:acme";
-  assert.deepEqual(principalForKey("admin-key"), { org: "acme" });
+  assert.deepEqual(principalForKey("admin-key"), { org: "acme", role: "admin" });
 });
 
 test("a key:org:agent is a member scoped to one sub-agent", () => {
   process.env.REWIND_API_KEYS = "member-key:acme:acme-refund-agent";
-  assert.deepEqual(principalForKey("member-key"), { org: "acme", agent: "acme-refund-agent" });
+  assert.deepEqual(principalForKey("member-key"), {
+    org: "acme",
+    agent: "acme-refund-agent",
+    role: "member",
+  });
+});
+
+test("an empty agent slot gives an org-wide key an explicit role", () => {
+  process.env.REWIND_API_KEYS = "judge-key:acme::demo";
+  assert.deepEqual(principalForKey("judge-key"), { org: "acme", role: "demo" });
+});
+
+test("a role can be combined with an agent scope", () => {
+  process.env.REWIND_API_KEYS = "j:acme:acme-refund-agent:demo";
+  assert.deepEqual(principalForKey("j"), {
+    org: "acme",
+    agent: "acme-refund-agent",
+    role: "demo",
+  });
+});
+
+test("an unknown role drops the entry rather than defaulting to admin", () => {
+  process.env.REWIND_API_KEYS = "typo-key:acme::readonly";
+  assert.equal(principalForKey("typo-key"), null);
 });
 
 test("unknown and missing keys resolve to null", () => {

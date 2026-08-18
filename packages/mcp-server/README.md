@@ -12,6 +12,8 @@ Rewind exposed as a **Model Context Protocol** server, so any MCP-capable agent 
 
 Each tool proxies the Rewind REST API, so the server just needs to reach an API instance via `REWIND_API_URL` (default `http://localhost:3000`).
 
+If that API has auth enabled (`REWIND_API_KEYS` non-empty — which is the case for the deployed Function URL), also set **`REWIND_API_KEY`** to a valid key. Without it the server omits the `x-api-key` header and every tool call fails with `401 unauthorized`. Local dev with `REWIND_API_KEYS=` empty needs no key.
+
 ## Build
 
 ```bash
@@ -36,8 +38,20 @@ Every client uses the same server entry — `command` + `args` + `env` — just 
 {
   "command": "npx",
   "args": ["-y", "@rewind/mcp"],
-  "env": { "REWIND_API_URL": "https://your-api-url" }
+  "env": {
+    "REWIND_API_URL": "https://your-api-url",
+    "REWIND_API_KEY": "${REWIND_API_KEY}"
+  }
 }
+```
+
+Never inline the key itself — these config files get committed. Use `${REWIND_API_KEY}`, which the
+client expands from your shell environment at launch. Since the key lives in the git-ignored `.env`,
+export it into the shell **before** starting the client:
+
+```bash
+export $(grep -E '^REWIND_API_KEY=' .env | xargs)     # bash/zsh
+$env:REWIND_API_KEY = (Select-String '^REWIND_API_KEY=' .env).Line.Split('=',2)[1]   # PowerShell
 ```
 
 Where that snippet goes, per client:
